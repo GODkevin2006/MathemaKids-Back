@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
           Schema::create('contenido_proyecto', function (Blueprint $table) {
-            $table->string('id')->primary();
+            $table->id('id_contenido');
             $table->text('contenido')->nullable();
             $table->date('fecha_creacion')->nullable();
             $table->date('fecha_actualizacion')->nullable();
@@ -20,8 +20,8 @@ return new class extends Migration
 
             // relacion con la tabla de usuario
 
-            $table->string('id_proyecto')->nullable();
-             $table->foreign('id_proyecto')->references('id')->on ('proyecto')->onDelete('cascade');
+            $table->unsignedBigInteger('id_proyecto');
+             $table->foreign('id_proyecto')->references('id_proyecto')->on('proyecto')->onDelete('cascade');
              $table->timestamps();//
     });
 }

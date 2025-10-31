@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
                 Schema::create('publicacion', function (Blueprint $table) {
-            $table->string('id')->primary();
+            $table->id('id_publicacion');
             $table->text('tipo_publicacion')->nullable();
             $table->string('titulo')->nullable();
             $table->text('contenido')->nullable();
@@ -22,9 +22,9 @@ return new class extends Migration
 
             // relacion con la tabla de usuario
 
-            $table->string('id_usuario')->nullable();
-             $table->foreign('id_usuario')->references('id')->on ('usuario')->onDelete('cascade');
-             $table->integer('id_categoria')->references('id')->on ('categoria')->onDelete('cascade');
+            $table->unsignedBigInteger('id_usuario');
+             $table->foreign('id_usuario')->references('id_usuario')->on('usuario')->onDelete('cascade');
+             $table->unsignedBigInteger('id_categoria')->references('id_categoria')->on('categoria')->onDelete('cascade');
              $table->timestamps();
     });
 }

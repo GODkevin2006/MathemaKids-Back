@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('usuario', function (Blueprint $table) {
-            $table->string('id')->primary();
+            $table->id('id_usuario');
             $table->string('nombres')->nullable();
             $table->string('apellidos')->nullable();
             $table->string('correo')->unique();
@@ -21,8 +21,8 @@ return new class extends Migration
             
             // relacion con la tabla rol
 
-        $table->string('id_rol')->nullable();
-        $table->foreign('id_rol')->references('id')->on ('rol')->onDelete('cascade');
+        $table->unsignedBigInteger('id_rol');
+        $table->foreign('id_rol')->references('id_rol')->on('rol')->onDelete('cascade');
         $table->timestamps();
     });
 }
