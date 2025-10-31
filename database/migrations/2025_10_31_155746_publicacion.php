@@ -13,12 +13,12 @@ return new class extends Migration
     {
                 Schema::create('publicacion', function (Blueprint $table) {
             $table->id('id_publicacion');
-            $table->text('tipo_publicacion')->nullable();
-            $table->string('titulo')->nullable();
-            $table->text('contenido')->nullable();
-            $table->date('fecha_publicacion')->nullable();
-            $table->string('imagen_destacada')->nullable();
-            $table->string('vistas')->nullable();
+            $table->text('tipo_publicacion');
+            $table->string('titulo');
+            $table->text('contenido');
+            $table->date('fecha_publicacion');
+            $table->string('imagen_destacada');
+            $table->string('vistas');
 
             // relacion con la tabla de usuario
 

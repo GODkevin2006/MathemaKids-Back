@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('proyecto', function (Blueprint $table) {
             $table->id('id_proyecto');
-            $table->string('nombre')->nullable();
-            $table->text('descripcion')->nullable();
-            $table->string('imagen_portada')->nullable();
+            $table->string('nombre');
+            $table->text('descripcion');
+            $table->string('imagen_portada');
 
             // relacion con la tabla de usuario
 

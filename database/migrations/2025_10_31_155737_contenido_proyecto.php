@@ -13,10 +13,10 @@ return new class extends Migration
     {
           Schema::create('contenido_proyecto', function (Blueprint $table) {
             $table->id('id_contenido');
-            $table->text('contenido')->nullable();
-            $table->date('fecha_creacion')->nullable();
-            $table->date('fecha_actualizacion')->nullable();
-            $table->string('archivo_adjunto')->nullable();
+            $table->text('contenido');
+            $table->date('fecha_creacion');
+            $table->date('fecha_actualizacion');
+            $table->string('archivo_adjunto');
 
             // relacion con la tabla de usuario
 

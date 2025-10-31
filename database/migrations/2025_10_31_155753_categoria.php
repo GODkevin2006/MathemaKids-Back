@@ -13,8 +13,8 @@ return new class extends Migration
     {
          Schema::create('categoria', function (Blueprint $table) {
             $table->id('id_categoria');
-            $table->string('nombre')->nullable();
-            $table->text('orden_publicacion')->nullable();
+            $table->string('nombre');
+            $table->text('orden_publicacion');
             
 
             // relacion con la tabla de usuario

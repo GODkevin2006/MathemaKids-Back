@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('usuario', function (Blueprint $table) {
             $table->id('id_usuario');
-            $table->string('nombres')->nullable();
-            $table->string('apellidos')->nullable();
+            $table->string('nombres');
+            $table->string('apellidos');
             $table->string('correo')->unique();
-            $table->string('contraseña')->nullable();
-            $table->string('token_verificado')->nullable();
+            $table->string('contraseña');
+            $table->string('token_verificado');
             
             // relacion con la tabla rol
 

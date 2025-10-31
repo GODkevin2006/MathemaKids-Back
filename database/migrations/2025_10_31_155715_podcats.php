@@ -13,9 +13,9 @@ return new class extends Migration
     {
          Schema::create('podcats', function (Blueprint $table) {
             $table->id('id_podcast');
-            $table->string('nombre')->nullable();
-            $table->text('descripcion')->nullable();
-            $table->string('categoria')->nullable();
+            $table->string('nombre');
+            $table->text('descripcion');
+            $table->string('categoria');
 
             // relacion con la tabla de usuario
 
