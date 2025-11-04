@@ -19,8 +19,8 @@ class User extends Authenticatable
         'contraseña',
     ];
 
- public function compras()
+ public function rol()
  {
-    return $this->hasMany(Compra::class,'usuario','id');
+    return $this->belongTo(rol::class,'rol','id');
  }
 }
