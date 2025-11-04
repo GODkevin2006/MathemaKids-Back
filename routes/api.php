@@ -1,9 +1,13 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UsuarioController;
+use App\Http\Controllers\RolController;
 use App\Http\Controllers\PublicacionController;
 
-Route::apiResource('publicaciones', PublicacionController::class);
+
+Route::apiResource('usuario', UsuarioController::class);
+Route::apiResource('rol', RolController::class);    
+Route::apiResource('Publicacion', PublicacionController::class);
 
 
