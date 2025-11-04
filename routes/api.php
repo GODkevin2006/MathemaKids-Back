@@ -8,6 +8,6 @@ use App\Http\Controllers\PublicacionController;
 
 Route::apiResource('usuario', UsuarioController::class);
 Route::apiResource('rol', RolController::class);    
-Route::apiResource('Publicacion', PublicacionController::class);
+Route::apiResource('publicacion', PublicacionController::class);
 
 

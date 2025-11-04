@@ -24,5 +24,6 @@ class User extends Authenticatable
  public function rol()
  {
     return $this->belongTo(Rol::class,'id_rol','id_rol');
+    return $this->hasMany(Publicacion::class, 'id_usuario', 'id_usuario');
  }
 }
