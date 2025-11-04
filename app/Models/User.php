@@ -9,18 +9,20 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    protected $primaryKey = 'id';
+   
     protected $table = 'usuario';
+    protected $primaryKey = 'id_usuario';
 
     protected $fillable = [
         'nombres',
         'apellidos',
         'correo',
         'contraseña',
+        'id_rol'
     ];
 
  public function rol()
  {
-    return $this->belongTo(rol::class,'rol','id');
+    return $this->belongTo(Rol::class,'id_rol','id_rol');
  }
 }

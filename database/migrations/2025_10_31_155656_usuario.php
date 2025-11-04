@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('apellidos');
             $table->string('correo')->unique();
             $table->string('contraseña');
-            $table->string('token_verificado');
+            $table->string('token_verificado')->nullable();
             
             // relacion con la tabla rol
 
