@@ -13,14 +13,20 @@ class ProyectoRequest extends FormRequest
 
     public function rules(): array
     {
-        $isUpdate = in_array($this->method(), ['PUT','PATCH']);
-        return [
-            'nombre' => ($isUpdate ? 'sometimes' : 'required').'|string|max:50',
-            'descripcion' =>($isUpdate ? 'sometimes' : 'required'). '|string|max:500|min:10',
-            'imagen_portada' => ($isUpdate ? 'sometimes' : 'required').'|string|max:255',
+        $isUpdate = in_array($this->method(), ['PUT', 'PATCH']);
+
+        $rules = [
+            'nombre' => ($isUpdate ? 'sometimes' : 'required') . '|string|max:50',
+            'descripcion' => ($isUpdate ? 'sometimes' : 'required') . '|string|max:500|min:10',
+            'imagen_portada' => ($isUpdate ? 'sometimes' : 'required') . '|string|max:255',
         ];
 
+        // 🔹 Solo exigir id_usuario cuando se crea (POST)
+        if ($this->isMethod('post')) {
+            $rules['id_usuario'] = 'required|integer|exists:usuario,id_usuario';
+        }
 
+        return $rules;
     }
 
     public function messages(): array
