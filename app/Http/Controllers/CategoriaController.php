@@ -1,36 +1,35 @@
 <?php
-//NO TOCAR HIJOS DE LARRY
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProyectoRequest;
+use App\Http\Requests\CategoriaRequest;
 use Illuminate\Http\Request;
-use App\Services\ProyectoService;
+use App\Services\UserService;
 
 
-class ProyectoController extends Controller
+class CategoriaController extends Controller
 {
    
-    protected ProyectoService $servicioProyecto;
+    protected CategoriaService $servicioCategoria;
 
 
     public function __construct(){
-         $this->servicioProyecto = new ProyectoService;
+        return $this->servicioCategoria = new CategoriaService;
     }
 
     public function index()
     {
         try {
-            $proyecto = $this->servicioProyecto::listarProyecto();
+            $categorias = $this->servicioCategoria::listarCategoria();
 
             return response()->json([
                 'success' => 'Se listaron correctamente',
-                'data' =>$proyecto
+                'data' =>$categorias
             ],200);
 
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'No se pudo listar los proyectos',
+                'error' => 'No se pudo listar las categorias',
                 'data' =>$e
             ],400);
         }
@@ -39,19 +38,19 @@ class ProyectoController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(ProyectoRequest $registro)
+    public function store(CategoriaRequest $registro)
     {
          try {
-            $proyectoRegistrado = $this->servicioProyecto::crearProyecto($registro->validated());
+            $categoriaRegistrado = $this->servicioCategoria::crearCategoria($registro->validated());
 
             return response()->json([
-                'success' => 'El proyecto se registró correctamente',
-                'data' => $proyectoRegistrado,
+                'succes' => 'La categoria se registró correctamente',
+                'data' => $categoriaRegistrada,
             ],201);
         
         } catch (\Exception $e) {
             return response()->json ([
-                'error' => 'El proyecto no se pudo registrar',
+                'error' => 'La categoria no se pudo registrar',
                 'data' => $e
             ],400);
             
@@ -66,25 +65,25 @@ class ProyectoController extends Controller
     public function show($id)
     {
          try {
-            $proyecto = $this->servicioProyecto::obtenerProyecto($id);
+            $categoria = $this->servicioCategoria::obtenerCategoria($id);
 
-            if(!$proyecto) {
+            if(!$categoria) {
 
                 return response()->json([
-                'Error' => 'El proyecto no se pudo encontrar',
+                'Error' => 'La categoria no se pudo encontrar',
                 
             ],404);
 
             }
 
             return response()->json([
-                'success' => 'El proyecto se encontró correctamente',
-                'data' =>$proyecto
+                'success' => 'La categoria se encontró correctamente',
+                'data' =>$categoria
             ],200);
 
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'No se pudo encontrar el proyecto',
+                'error' => 'No se pudo encontrar La categoria',
                 'data' =>$e
             ],400);
         }
@@ -93,29 +92,28 @@ class ProyectoController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update( ProyectoRequest $camposActualizados, $id_proyecto,)
-
+    public function update(CategoriaRequest $camposActualizados, $id_categoria)
     {
          try {
-            $proyecto = $this->servicioProyecto::actualizarProyecto($camposActualizados->validated(),$id_proyecto);
+            $categoria = $this->servicioCategoria::actualizarCategoria($camposActualizados->validated(),$id_categoria);
 
-            if(!$proyecto) {
+            if(!$categoria) {
 
                 return response()->json([
-                'Error' => 'El proyecto no se pudo encontrar',
+                'Error' => 'La categoria no se pudo encontrar',
                 
             ],404);
 
             }
 
             return response()->json([
-                'success' => 'El proyecto se actualizó correctamente',
-                'data' =>$proyecto
+                'success' => 'La categoria se actualizó correctamente',
+                'data' =>$categoria
             ],200);
 
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'No se pudo actualizar el proyecto',
+                'error' => 'No se pudo actualizar la categoria',
                 'data' =>$e
             ],400);
         }
@@ -124,28 +122,28 @@ class ProyectoController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id_proyecto)
+    public function destroy($id_categoria)
     
     {
          try {
-            $proyecto = $this->servicioProyecto::eliminarProyecto($id_proyecto);
+            $categoria = $this->servicioCategoria::eliminarCategoria($id_categoria);
 
-            if(!$proyecto) {
+            if(!$categoria) {
 
                 return response()->json([
-                'Error' => 'El proyecto no se pudo encontrar',
+                'Error' => 'La categoria no se pudo encontrar',
                 
             ],404);
 
             }
 
             return response()->json([
-                'success' => 'El proyecto se eliminó correctamente',
+                'success' => 'La categoria se eliminó correctamente',
             ],200);
 
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'No se pudo eliminar el proyecto',
+                'error' => 'No se pudo eliminar la categoria',
                 'data' =>$e
             ],400);
         }

@@ -14,7 +14,7 @@ return new class extends Migration
          Schema::create('categoria', function (Blueprint $table) {
             $table->id('id_categoria');
             $table->string('nombre');
-            $table->text('orden_publicacion');
+            $table->integrer('orden_publicacion');
             
 
             // relacion con la tabla de usuario

@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UsuarioRequest extends FormRequest
+class CategoriaRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,9 +25,7 @@ class UsuarioRequest extends FormRequest
         return [
             'nombres' => ($isUpdate ? 'sometimes' : 'required').'|string|max:30|min:10',
             'apellidos' => ($isUpdate ? 'sometimes' : 'required').'|string|max:30|min:10',
-            'correo' => ($isUpdate ? 'sometimes' : 'required'). '|email|unique:usuario,correo',
-            'contraseña' => ($isUpdate ? 'sometimes' : 'required'). '|min:8|max:20|confirmed',
-            'id_rol' => 'sometimes|exists:rol,id_rol'
+            'orden_publicacion' => ($isUpdate ? 'sometimes' : 'required'). '|string|max:30|min:10'
         ];
     
     }
@@ -47,16 +45,12 @@ class UsuarioRequest extends FormRequest
         'apellidos.min' => 'El apellido debe tener al menos 10 caracteres.',
         'apellidos.max' => 'El apellido no puede tener más de 30 caracteres.',
 
-        // Correo
-        'correo.required' => 'El campo correo es obligatorio.',
-        'correo.email' => 'Debe ingresar un correo electrónico válido.',
-        'correo.unique' => 'El correo ingresado ya está registrado.',
+         // Orden publicacion
+        'orden_publicacion.required' => 'El campo orden publicacion es obligatorio.',
+        'orden_publicacion.string' => 'El campo orden publicacion debe contener solo texto.',
+        'orden_publicacion.min' => 'El orden publicacion debe tener al menos 10 caracteres.',
+        'orden_publicacion.max' => 'El orden publicacion no puede tener más de 30 caracteres.',
 
-        // Contraseña
-        'contraseña.required' => 'El campo contraseña es obligatorio.',
-        'contraseña.min' => 'La contraseña debe tener al menos 8 caracteres.',
-        'contraseña.max' => 'La contraseña no puede tener más de 20 caracteres.',
-        'contraseña.confirmed' => 'La confirmación de la contraseña no coincide.',
     ];
     }
 }
