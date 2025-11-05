@@ -10,23 +10,24 @@ use Illuminate\Support\Str;
 class UserService
 {
     public static function crearUsuario($registroUsuario)
-    {
-        // Buscar el rol “Usuario” en la tabla rol
-        $rol = Rol::where('nombre_rol', 'usuario')->first();
+{
+    // Si el request trae un id_rol, lo usamos. Si no, buscamos el rol "Usuario"
+    $rol_id = $registroUsuario['id_rol'] ?? Rol::where('nombre_rol', 'Usuario')->value('id_rol');
 
-        if (!$rol) {
-            throw new \Exception('No se encontró el rol "Usuario" en la tabla rol.');
-        }
-
-        // Crear usuario con rol asignado automáticamente
-        return User::create([
-            'nombres' => $registroUsuario['nombres'],
-            'apellidos' => $registroUsuario['apellidos'],
-            'correo' => $registroUsuario['correo'],
-            'contraseña' => $registroUsuario['contraseña'],
-            'id_rol' => $rol->id_rol, // 🔥 aquí se asigna el rol desde la tabla rol
-        ]);
+    if (!$rol_id) {
+        throw new \Exception('No se encontró un rol válido para el usuario.');
     }
+
+    // Crear usuario con rol asignado
+    return User::create([
+        'nombres' => $registroUsuario['nombres'],
+        'apellidos' => $registroUsuario['apellidos'],
+        'correo' => $registroUsuario['correo'],
+        'contraseña' => $registroUsuario['contraseña'],
+        'id_rol' => $rol_id,
+    ]);
+}
+
 
     public static function listarUsuarios()
     {
