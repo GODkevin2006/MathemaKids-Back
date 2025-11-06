@@ -1,70 +1,153 @@
 <?php
+//NO TOCAR HIJOS DE LARRY
 
 namespace App\Http\Controllers;
 
-use App\Models\Proyecto;
 use App\Http\Requests\ProyectoRequest;
-use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use App\Services\ProyectoService;
+
 
 class ProyectoController extends Controller
 {
-    // Mostrar todos los proyectos
+   
+    protected ProyectoService $servicioProyecto;
+
+
+    public function __construct(){
+         $this->servicioProyecto = new ProyectoService;
+    }
+
     public function index()
     {
-        $proyectos = Proyecto::all();
-        return response()->json($proyectos);
+        try {
+            $proyecto = $this->servicioProyecto::listarProyecto();
+
+            return response()->json([
+                'success' => 'Se listaron correctamente',
+                'data' =>$proyecto
+            ],200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'No se pudo listar los proyectos',
+                'data' =>$e
+            ],400);
+        }
     }
 
-    // Crear un nuevo proyecto
-    public function store(ProyectoRequest $request): JsonResponse
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(ProyectoRequest $registro)
     {
-        $validated = $request->validate([
-            'id_usuario' => 'required|integer',
-            'nombre' => 'required|string|max:50',
-            'descripcion' => 'nullable|string',
-            'imagen_portada' => 'nullable|string|max:255',
-        ]);
+         try {
+            $proyectoRegistrado = $this->servicioProyecto::crearProyecto($registro->validated());
 
-        $proyecto = Proyecto::create($request->validated());
+            return response()->json([
+                'success' => 'El proyecto se registró correctamente',
+                'data' => $proyectoRegistrado,
+            ],201);
+        
+        } catch (\Exception $e) {
+            return response()->json ([
+                'error' => 'El proyecto no se pudo registrar',
+                'data' => $e
+            ],400);
+            
+        } 
 
-        return response()->json([
-            'message' => 'Proyecto creado correctamente',
-            'data' => $proyecto
-        ]);
+         
     }
 
-    // Mostrar un proyecto específico
+    /**
+     * Display the specified resource.
+     */
     public function show($id)
     {
-        $proyecto = Proyecto::findOrFail($id);
-        return response()->json($proyecto);
+         try {
+            $proyecto = $this->servicioProyecto::obtenerProyecto($id);
+
+            if(!$proyecto) {
+
+                return response()->json([
+                'Error' => 'El proyecto no se pudo encontrar',
+                
+            ],404);
+
+            }
+
+            return response()->json([
+                'success' => 'El proyecto se encontró correctamente',
+                'data' =>$proyecto
+            ],200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'No se pudo encontrar el proyecto',
+                'data' =>$e
+            ],400);
+        }
     }
 
-    // Actualizar un proyecto existente
-    public function update(Request $request, $id)
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update( ProyectoRequest $camposActualizados, $id_proyecto,)
+
     {
-        $proyecto = Proyecto::findOrFail($id);
+         try {
+            $proyecto = $this->servicioProyecto::actualizarProyecto($camposActualizados->validated(),$id_proyecto);
 
-        $validated = $request->validate([
-            'nombre' => 'sometimes|string|max:50',
-            'descripcion' => 'nullable|string',
-            'imagen_portada' => 'nullable|string|max:255',
-        ]);
+            if(!$proyecto) {
 
-        $proyecto->update($validated);
+                return response()->json([
+                'Error' => 'El proyecto no se pudo encontrar',
+                
+            ],404);
 
-        return response()->json([
-            'message' => 'Proyecto actualizado correctamente',
-            'data' => $proyecto
-        ]);
+            }
+
+            return response()->json([
+                'success' => 'El proyecto se actualizó correctamente',
+                'data' =>$proyecto
+            ],200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'No se pudo actualizar el proyecto',
+                'data' =>$e
+            ],400);
+        }
     }
 
-    // Eliminar un proyecto
-    public function destroy($id)
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy($id_proyecto)
+    
     {
-        $proyecto = Proyecto::findOrFail($id);
-        $proyecto->delete();
+         try {
+            $proyecto = $this->servicioProyecto::eliminarProyecto($id_proyecto);
 
-        return response()->json(['message' => 'Proyecto eliminado correctamente']);
+            if(!$proyecto) {
+
+                return response()->json([
+                'Error' => 'El proyecto no se pudo encontrar',
+                
+            ],404);
+
+            }
+
+            return response()->json([
+                'success' => 'El proyecto se eliminó correctamente',
+            ],200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'No se pudo eliminar el proyecto',
+                'data' =>$e
+            ],400);
+        }
     }
 }
