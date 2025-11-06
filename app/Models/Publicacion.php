@@ -4,7 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
-
+use Illuminate\Foundation\Auth\User as AuthUser;
+use User as GlobalUser;
 
 class Publicacion extends Model
 {
@@ -24,6 +25,6 @@ class Publicacion extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class,'id_usuario', 'id_usuario');
+        return $this->belongsTo(AuthUser::class,'id_usuario', 'id_usuario');
     }
 }

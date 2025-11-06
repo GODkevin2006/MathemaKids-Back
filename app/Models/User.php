@@ -1,6 +1,6 @@
 <?php
 
-App\Models\User.php;
+namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -23,8 +23,12 @@ class User extends Authenticatable
 
  public function rol()
  {
-
     return $this->belongTo(Rol::class,'id_rol','id_rol');
-    return $this->hasMany(Proyecto::class,'id_usuario','id_usuario'); 
+    
+ }
+ public function proyecto()
+ {
+    return $this->hasMany(Proyecto::class,'id_usuario','id_usuario');
+    
  }
 }
