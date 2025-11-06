@@ -6,16 +6,16 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class categoria extends Authenticatable
+class Categoria extends Model
 {
    
     protected $table = 'categoria';
     protected $primaryKey = 'id_categoria';
+    public $timestamps = false;
 
     protected $fillable = [
-        'nombres',
-        'apellidos',
-        'orden_publicacion',
+        'nombre_categoria',
+        'orden_publicacion'
     ];
 
  public function publicacion()

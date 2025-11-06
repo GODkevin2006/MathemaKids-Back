@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CategoriaRequest;
 use Illuminate\Http\Request;
-use App\Services\UserService;
+use App\Services\CategoriaService;
 
 
 class CategoriaController extends Controller
@@ -44,8 +44,8 @@ class CategoriaController extends Controller
             $categoriaRegistrado = $this->servicioCategoria::crearCategoria($registro->validated());
 
             return response()->json([
-                'succes' => 'La categoria se registró correctamente',
-                'data' => $categoriaRegistrada,
+                'success' => 'La categoria se registró correctamente',
+                'data' => $categoriaRegistrado,
             ],201);
         
         } catch (\Exception $e) {

@@ -1,9 +1,9 @@
 <?php
 
 namespace App\Services;
-use App\Models\Rol;
+use App\Models\Categoria;
 
-class RolService{
+class CategoriaService{
     public static function crearCategoria($registroCategoria){
         return categoria::create($registroCategoria);
     }

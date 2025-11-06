@@ -23,27 +23,20 @@ class CategoriaRequest extends FormRequest
     {
         $isUpdate = in_array($this->method(), ['PUT','PATCH']);
         return [
-            'nombres' => ($isUpdate ? 'sometimes' : 'required').'|string|max:30|min:10',
-            'apellidos' => ($isUpdate ? 'sometimes' : 'required').'|string|max:30|min:10',
-            'orden_publicacion' => ($isUpdate ? 'sometimes' : 'required'). '|string|max:30|min:10'
+            'nombre_categoria' => ($isUpdate ? 'sometimes' : 'required').'|string|max:30|min:1',
+            'orden_publicacion' => ($isUpdate ? 'sometimes' : 'required'). '|integer|max:30|min:1'
         ];
     
     }
-
     public function meesage(): array
     {
     return [
-        // Nombres
-        'nombres.required' => 'El campo nombres es obligatorio.',
-        'nombres.string' => 'El campo nombres debe contener solo texto.',
-        'nombres.min' => 'El nombre debe tener al menos 10 caracteres.',
-        'nombres.max' => 'El nombre no puede tener más de 30 caracteres.',
+        // Nombre
+        'nombre_categoria.required' => 'El campo nombres es obligatorio.',
+        'nombre_categoria.string' => 'El campo nombres debe contener solo texto.',
+        'nombre_categoria.min' => 'El nombre debe tener al menos 10 caracteres.',
+        'nombre_categoria.max' => 'El nombre no puede tener más de 30 caracteres.',
 
-        // Apellidos
-        'apellidos.required' => 'El campo apellidos es obligatorio.',
-        'apellidos.string' => 'El campo apellidos debe contener solo texto.',
-        'apellidos.min' => 'El apellido debe tener al menos 10 caracteres.',
-        'apellidos.max' => 'El apellido no puede tener más de 30 caracteres.',
 
          // Orden publicacion
         'orden_publicacion.required' => 'El campo orden publicacion es obligatorio.',
