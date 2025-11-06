@@ -25,5 +25,7 @@ class Publicacion extends Model
     public function user()
     {
         return $this->belongsTo(User::class,'id_usuario', 'id_usuario');
+        return $this->belongsTo(Categoria::class,'id_categoria', 'id_categoria');
+        
     }
 }
