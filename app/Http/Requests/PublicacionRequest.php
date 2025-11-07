@@ -31,7 +31,7 @@ class PublicacionRequest extends FormRequest
             'contenido'         => ($isUpdate ? 'sometimes' : 'required') . '|string|min:10',
             'fecha_publicacion' => ($isUpdate ? 'sometimes' : 'required') . '|date',
             'imagen_destacada'  => ($isUpdate ? 'sometimes' : 'required') . '|string|max:255',
-            'vistas'            => ($isUpdate ? 'sometimes' : 'nullable') . '|integer|min:0',
+            'numero_vistas'     => ($isUpdate ? 'sometimes' : 'nullable') . '|integer|min:0'
         ];
     }
 
@@ -69,8 +69,8 @@ class PublicacionRequest extends FormRequest
         'imagen_destacada.max'      => 'La ruta de la imagen no puede superar los 255 caracteres.',
 
         // vistas
-        'vistas.integer'            => 'El número de vistas debe ser un valor numérico entero.',
-        'vistas.min'                => 'El número de vistas no puede ser negativo.',
+        'numero_vistas.integer'     => 'El número de vistas debe ser un valor numérico entero.',
+        'numero_vistas.min'         => 'El número de vistas no puede ser negativo.',
 
         ];
     }

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('nombre');
             $table->text('descripcion');
             $table->string('categoria');
+            $table->string('estado')->default('activo');
 
             // relacion con la tabla de usuario
 

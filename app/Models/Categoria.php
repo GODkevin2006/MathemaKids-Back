@@ -20,6 +20,6 @@ class Categoria extends Model
 
  public function publicacion()
  {
-    return $this->belongTo(publicacion::class,'id_publicacion','id_publicacion');
+    return $this->hasMany(Publicacion::class,'id_publicacion','id_publicacion');
  }
 }

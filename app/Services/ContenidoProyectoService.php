@@ -43,8 +43,10 @@ class ContenidoProyectoService{
             return null;
         }
 
-        $contenidoproyecto->delete();
-
+         //para que cuando yo haga un delete no me borre los datos y solo cambie el campo de estado a inactivo
+        $contenidoproyecto->estado = $contenidoproyecto->estado === 'activo' ? 'inactivo' : 'activo';
+        $contenidoproyecto->save();
         return true;
+
         }
 }

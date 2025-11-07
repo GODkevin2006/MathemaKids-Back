@@ -27,7 +27,7 @@ class UsuarioRequest extends FormRequest
             'apellidos' => ($isUpdate ? 'sometimes' : 'required').'|string|max:30|min:10',
             'correo' => ($isUpdate ? 'sometimes' : 'required'). '|email|unique:usuario,correo',
             'contraseña' => ($isUpdate ? 'sometimes' : 'required'). '|min:8|max:20|confirmed',
-            'id_rol' => 'sometimes|exists:rol,id_rol'
+            'id_rol' => ($isUpdate ? 'sometimes' : 'required').'|integer|exists:rol,id_rol'
         ];
     
     }

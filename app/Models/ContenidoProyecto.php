@@ -14,6 +14,7 @@ class ContenidoProyecto extends Model
     public $timestamps = true;
 
     protected $fillable = [
+        'id_proyecto',
         'contenido',
         'fecha_creacion',
         'fecha_actualizacion',

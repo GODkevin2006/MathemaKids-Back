@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id('id_categoria');
             $table->string('nombre_categoria');
             $table->integer('orden_publicacion');
+            $table->string('estado')->default('activo');
             
 
             // relacion con la tabla de usuario

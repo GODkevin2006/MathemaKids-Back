@@ -48,7 +48,8 @@ class ProyectoService
             return null;
         }
 
-        $proyecto->delete();
+        $proyecto->estado = $proyecto->estado === 'activo' ? 'inactivo' : 'activo';
+        $proyecto->save();
 
         return true;
     }
