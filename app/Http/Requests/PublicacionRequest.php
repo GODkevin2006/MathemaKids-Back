@@ -26,12 +26,13 @@ class PublicacionRequest extends FormRequest
         return [
             'id_categoria'      => ($isUpdate ? 'sometimes' : 'required') . '|integer|exists:categoria,id_categoria',
             'id_usuario'        => ($isUpdate ? 'sometimes' : 'required') . '|integer|exists:usuario,id_usuario',
-            'tipo_publicacion'  => ($isUpdate ? 'sometimes' : 'required') . '|string|in:block,noticias',
+            'tipo_publicacion'  => ($isUpdate ? 'sometimes' : 'required') . '|string|in:blog,noticias',
             'titulo'            => ($isUpdate ? 'sometimes' : 'required') . '|string|min:5|max:100',
             'contenido'         => ($isUpdate ? 'sometimes' : 'required') . '|string|min:10',
             'fecha_publicacion' => ($isUpdate ? 'sometimes' : 'required') . '|date',
             'imagen_destacada'  => ($isUpdate ? 'sometimes' : 'required') . '|string|max:255',
-            'numero_vistas'     => ($isUpdate ? 'sometimes' : 'nullable') . '|integer|min:0'
+            'numero_vistas'     => ($isUpdate ? 'sometimes' : 'nullable') . '|integer|min:0',
+            'estado'            => ($isUpdate ? 'sometimes' : 'required') . '|in:activo,inactivo',
         ];
     }
 

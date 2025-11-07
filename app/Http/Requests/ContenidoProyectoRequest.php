@@ -27,7 +27,8 @@ class ContenidoProyectoRequest extends FormRequest
             'contenido' => ($isUpdate ? 'sometimes' : 'required').'|string|min:10',
             'fecha_creacion' => ($isUpdate ? 'sometimes' : 'required'). '|date',
             'fecha_actualizacion' => ($isUpdate ? 'sometimes' : 'required'). '|date',
-            'archivo_adjunto' => ($isUpdate ? 'sometimes' : 'required'). '|string|max:255'
+            'archivo_adjunto' => ($isUpdate ? 'sometimes' : 'required'). '|string|max:255',
+            'estado'  => ($isUpdate ? 'sometimes' : 'required') . '|in:activo,inactivo',
         ];
     
     }

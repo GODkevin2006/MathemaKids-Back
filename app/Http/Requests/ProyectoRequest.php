@@ -19,6 +19,7 @@ class ProyectoRequest extends FormRequest
             'nombre' => ($isUpdate ? 'sometimes' : 'required') . '|string|max:50',
             'descripcion' => ($isUpdate ? 'sometimes' : 'required') . '|string|max:500|min:10',
             'imagen_portada' => ($isUpdate ? 'sometimes' : 'required') . '|string|max:255',
+            'estado'  => ($isUpdate ? 'sometimes' : 'required') . '|in:activo,inactivo',
         ];
 
         // 🔹 Solo exigir id_usuario cuando se crea (POST)

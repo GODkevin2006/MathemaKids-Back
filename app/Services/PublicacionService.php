@@ -46,8 +46,7 @@ class PublicacionService
             return null;
         }
 
-        $publicacion->estado = $publicacion->estado === 'activo' ? 'inactivo' : 'activo';
-        $publicacion->save();
+        $publicacion->update(['estado'=>'inactivo']);
 
         return true;
     }

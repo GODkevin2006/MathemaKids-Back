@@ -18,6 +18,7 @@ class User extends Authenticatable
         'apellidos',
         'correo',
         'contraseña',
+        'estado',
         'id_rol'
     ];
 

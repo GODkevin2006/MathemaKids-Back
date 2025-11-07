@@ -21,6 +21,7 @@ class Publicacion extends Model
         'fecha_publicacion',
         'imagen_destacada',
         'numero_vistas',
+        'estado'
     ];
 
     public function user()

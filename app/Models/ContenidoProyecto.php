@@ -18,7 +18,8 @@ class ContenidoProyecto extends Model
         'contenido',
         'fecha_creacion',
         'fecha_actualizacion',
-        'archivo_adjunto'
+        'archivo_adjunto',
+        'estado'
     ];
 
  public function proyecto()

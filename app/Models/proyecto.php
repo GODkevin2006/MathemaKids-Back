@@ -25,6 +25,7 @@ class Proyecto extends Model
         'nombre',
         'descripcion',
         'imagen_portada',
+        'estado'
     ];
 
     // Relación: un proyecto pertenece a un usuario

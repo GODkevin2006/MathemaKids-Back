@@ -43,8 +43,7 @@ class CategoriaService{
             return null;
         }
 
-        $categoria->estado = $categoria->estado === 'activo' ? 'inactivo' : 'activo';
-        $categoria->save();
+        $categoria->update(['estado'=>'inactivo']);
 
         return true;
         }

@@ -24,7 +24,8 @@ class CategoriaRequest extends FormRequest
         $isUpdate = in_array($this->method(), ['PUT','PATCH']);
         return [
             'nombre_categoria' => ($isUpdate ? 'sometimes' : 'required').'|string|max:30|min:1',
-            'orden_publicacion' => ($isUpdate ? 'sometimes' : 'required'). '|integer|max:30|min:1'
+            'orden_publicacion' => ($isUpdate ? 'sometimes' : 'required'). '|integer|max:30|min:1',
+            'estado'  => ($isUpdate ? 'sometimes' : 'required') . '|in:activo,inactivo',
         ];
     
     }

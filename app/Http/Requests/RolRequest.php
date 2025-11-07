@@ -24,6 +24,7 @@ class RolRequest extends FormRequest
         $isUpdate = in_array($this->method(), ['PUT','PATCH']);
         return [
             'nombre_rol' => ($isUpdate ? 'sometimes' : 'required').'|string|unique:rol|max:30|min:5',
+            'estado'  => ($isUpdate ? 'sometimes' : 'required') . '|in:activo,inactivo',
         ];
     
     }
