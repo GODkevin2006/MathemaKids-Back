@@ -14,13 +14,17 @@ class SpotifyController extends Controller
 
     public function __construct()
     {
-        $this->clientId = '5c0cce52ee954bdbb93807a38414a453';
-        $this->clientSecret = 'ee71aca6e5934b2f9b49c066ff8e4a42';
-        $this->redirectUri = 'http://127.0.0.1:8000/spotify/callback';
+        // Usar valores del archivo de configuración (mejor práctica)
+        $this->clientId = config('spotify.client_id');
+        $this->clientSecret = config('spotify.client_secret');
+        $this->redirectUri = config('spotify.redirect_uri');
 
-        logger('=== SPOTIFY CONTROLLER INICIADO ===');
-        logger('Client ID: ' . $this->clientId);
-        logger('Redirect URI: ' . $this->redirectUri);
+        // Log solo en desarrollo
+        if (config('app.debug')) {
+            logger('=== SPOTIFY CONTROLLER INICIADO ===');
+            logger('Client ID: ' . $this->clientId);
+            logger('Redirect URI: ' . $this->redirectUri);
+        }
     }
 
     /**
@@ -30,62 +34,42 @@ class SpotifyController extends Controller
     {
         $scope = 'user-read-private user-read-email playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private';
         
+        $state = bin2hex(random_bytes(16));
+        Session::put('spotify_state', $state); // Guardar el state para verificarlo después
+        
         $queryParams = [
             'client_id' => $this->clientId,
             'response_type' => 'code',
             'redirect_uri' => $this->redirectUri,
             'scope' => $scope,
-            'state' => bin2hex(random_bytes(16)),
-            'show_dialog' => true
+            'state' => $state,
+            'show_dialog' => $request->get('show_dialog', false)
         ];
 
         $url = 'https://accounts.spotify.com/authorize?' . http_build_query($queryParams);
 
-        // Para Postman/API: devolver JSON con la URL
+        // Para API/JSON: devolver la URL
         if ($request->expectsJson() || $request->is('api/*')) {
             return response()->json([
                 'auth_url' => $url,
                 'message' => '🔑 Copia esta URL y ábrela en tu NAVEGADOR',
                 'instructions' => [
-                    '1' => 'Copia la URL de "auth_url"',
-                    '2' => 'Pégala en tu navegador',
-                    '3' => 'Inicia sesión en Spotify y autoriza la app',
-                    '4' => 'Serás redirigido automáticamente al callback',
-                    '5' => 'Revisa la respuesta en el navegador o usa /session-status'
+                    '1. Copia la URL de "auth_url"',
+                    '2. Pégala en tu navegador',
+                    '3. Inicia sesión en Spotify y autoriza la app',
+                    '4. Serás redirigido automáticamente al callback',
+                    '5. Usa GET /api/spotify/session-status para verificar'
                 ],
-                'debug' => [
-                    'client_id' => $this->clientId,
-                    'redirect_uri' => $this->redirectUri
+                'endpoints' => [
+                    'check_session' => 'GET /api/spotify/session-status',
+                    'get_profile' => 'GET /api/spotify/me',
+                    'get_playlists' => 'GET /api/spotify/playlists'
                 ]
             ]);
         }
 
+        // Para web: redirigir directamente
         return redirect($url);
-    }
-
-    /**
-     * Endpoint específico para obtener solo la URL de auth (sin redirección)
-     */
-    public function getAuthUrl(Request $request)
-    {
-        $scope = 'user-read-private user-read-email playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private';
-        
-        $url = 'https://accounts.spotify.com/authorize?' . http_build_query([
-            'client_id' => $this->clientId,
-            'response_type' => 'code',
-            'redirect_uri' => $this->redirectUri,
-            'scope' => $scope,
-            'state' => bin2hex(random_bytes(16)),
-            'show_dialog' => $request->get('show_dialog', true)
-        ]);
-
-        return response()->json([
-            'auth_url' => $url,
-            'scopes' => explode(' ', $scope),
-            'redirect_uri' => $this->redirectUri,
-            'client_id' => $this->clientId,
-            'note' => 'Usa esta URL en tu frontend o redirige al usuario a esta URL'
-        ]);
     }
 
     /**
@@ -93,67 +77,115 @@ class SpotifyController extends Controller
      */
     public function callback(Request $request)
     {
-        logger('=== CALLBACK INICIADO ===');
+        if (config('app.debug')) {
+            logger('=== CALLBACK INICIADO ===');
+            logger('Parámetros recibidos: ' . json_encode($request->all()));
+        }
         
         $code = $request->get('code');
         $error = $request->get('error');
+        $state = $request->get('state');
         
+        // Verificar el state para prevenir CSRF
+        $savedState = Session::get('spotify_state');
+        if ($state !== $savedState) {
+            logger('❌ State no coincide. CSRF detectado o sesión expirada');
+            return $this->respondWithError('Estado de seguridad inválido. Por favor, inicia el proceso de nuevo.', 400);
+        }
+        
+        // Manejo de errores de Spotify
         if ($error) {
-            return response()->json([
-                'error' => 'Error de Spotify: ' . $error,
-                'description' => 'El usuario denegó el acceso o hubo un error'
-            ], 400);
+            $errorMessage = match($error) {
+                'access_denied' => 'El usuario canceló la autorización',
+                'invalid_scope' => 'Los permisos solicitados no son válidos',
+                'invalid_request' => 'La solicitud es inválida',
+                default => 'Error de Spotify: ' . $error
+            };
+
+            return $this->respondWithError($errorMessage, 400);
         }
         
         if (!$code) {
-            return response()->json([
-                'error' => 'No se recibió código de autorización',
-                'received_params' => $request->all()
-            ], 400);
+            return $this->respondWithError('No se recibió código de autorización', 400);
         }
 
         try {
-            logger('Intercambiando código por token...');
-            $token = $this->getAccessToken($code);
+            if (config('app.debug')) {
+                logger('Intercambiando código por token...');
+            }
+
+            $tokenData = $this->getAccessToken($code);
             
-            // Guardar token en sesión
-            Session::put('spotify_token', $token['access_token']);
-            Session::put('spotify_refresh_token', $token['refresh_token']);
-            Session::put('spotify_expires_at', now()->addSeconds($token['expires_in']));
+            // Guardar token en sesión con timestamps
+            $expiresAt = now()->addSeconds($tokenData['expires_in']);
+            
+            Session::put('spotify_token', $tokenData['access_token']);
+            Session::put('spotify_refresh_token', $tokenData['refresh_token']);
+            Session::put('spotify_expires_at', $expiresAt);
+            Session::put('spotify_token_type', $tokenData['token_type']);
+            Session::put('spotify_scope', $tokenData['scope'] ?? '');
+            Session::forget('spotify_state'); // Limpiar el state usado
 
-            logger('✅ Token obtenido exitosamente');
+            if (config('app.debug')) {
+                logger('✅ Token guardado exitosamente');
+                logger('Expira en: ' . $expiresAt->toDateTimeString());
+            }
 
-            return response()->json([
-                'success' => true,
-                'message' => '🎉 ¡Autenticación con Spotify exitosa!',
-                'token_info' => [
-                    'access_token' => substr($token['access_token'], 0, 20) . '...',
-                    'token_type' => $token['token_type'],
-                    'expires_in' => $token['expires_in'],
-                    'scope' => $token['scope'] ?? 'default'
-                ],
-                'next_steps' => [
-                    'check_session' => 'GET /api/spotify/session-status',
-                    'get_profile' => 'GET /api/spotify/me',
-                    'get_playlists' => 'GET /api/spotify/playlists'
-                ],
-                'session_verified' => Session::has('spotify_token')
-            ]);
+            // Si es petición API, retornar JSON
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'success' => true,
+                    'message' => '🎉 ¡Autenticación con Spotify exitosa!',
+                    'token_info' => [
+                        'expires_at' => $expiresAt->toDateTimeString(),
+                        'expires_in_seconds' => $tokenData['expires_in'],
+                        'token_type' => $tokenData['token_type'],
+                        'scope' => $tokenData['scope'] ?? 'all requested scopes'
+                    ],
+                    'next_steps' => [
+                        '1. Verificar sesión' => 'GET /api/spotify/session-status',
+                        '2. Obtener perfil' => 'GET /api/spotify/me',
+                        '3. Ver playlists' => 'GET /api/spotify/playlists'
+                    ]
+                ], 200);
+            }
+
+            // Para web, redirigir a una página de éxito o dashboard
+            return redirect()->route('spotify.dashboard')->with('success', '¡Autenticación exitosa con Spotify!');
+
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            $response = $e->getResponse();
+            $statusCode = $response->getStatusCode();
+            $errorBody = json_decode($response->getBody()->getContents(), true);
+
+            logger('❌ Error HTTP ' . $statusCode . ': ' . json_encode($errorBody));
+            
+            $errorMessage = 'Error al obtener el token de acceso. ' . 
+                           ($errorBody['error_description'] ?? 'Por favor, intenta nuevamente.');
+            
+            return $this->respondWithError($errorMessage, 400);
 
         } catch (\Exception $e) {
-            logger('❌ Error en callback: ' . $e->getMessage());
+            logger('❌ Error general en callback: ' . $e->getMessage());
+            logger('Stack trace: ' . $e->getTraceAsString());
             
-            return response()->json([
-                'error' => 'No se pudo obtener el token de acceso',
-                'message' => $e->getMessage(),
-                'possible_causes' => [
-                    'El código expiró (vuelve a generar uno nuevo)',
-                    'Credenciales de Spotify incorrectas',
-                    'Problema de conexión con Spotify'
-                ],
-                'solution' => 'Ejecuta /api/spotify/login nuevamente para obtener un nuevo código'
-            ], 500);
+            return $this->respondWithError('Error inesperado al procesar la autenticación', 500);
         }
+    }
+
+    /**
+     * Responde con un error de forma consistente
+     */
+    private function respondWithError($message, $code = 400)
+    {
+        if (request()->expectsJson() || request()->is('api/*')) {
+            return response()->json([
+                'error' => $message,
+                'solution' => 'Intenta iniciar sesión nuevamente: GET /api/spotify/login'
+            ], $code);
+        }
+
+        return redirect()->route('home')->with('error', $message);
     }
 
     /**
@@ -161,7 +193,10 @@ class SpotifyController extends Controller
      */
     private function getAccessToken($code)
     {
-        $client = new Client(['timeout' => 30]);
+        $client = new Client([
+            'timeout' => 30,
+            'connect_timeout' => 10
+        ]);
         
         $response = $client->post('https://accounts.spotify.com/api/token', [
             'form_params' => [
@@ -179,18 +214,23 @@ class SpotifyController extends Controller
     }
 
     /**
-     * Refresha el access token cuando expira
+     * Refresca el access token cuando expira
      */
     private function refreshAccessToken()
     {
         $refreshToken = Session::get('spotify_refresh_token');
 
         if (!$refreshToken) {
+            logger('❌ No hay refresh token disponible');
             return null;
         }
 
         try {
-            $client = new Client();
+            if (config('app.debug')) {
+                logger('🔄 Refrescando access token...');
+            }
+
+            $client = new Client(['timeout' => 30]);
             
             $response = $client->post('https://accounts.spotify.com/api/token', [
                 'form_params' => [
@@ -203,25 +243,36 @@ class SpotifyController extends Controller
                 ]
             ]);
 
-            $token = json_decode($response->getBody(), true);
+            $tokenData = json_decode($response->getBody(), true);
             
-            Session::put('spotify_token', $token['access_token']);
-            Session::put('spotify_expires_at', now()->addSeconds($token['expires_in']));
+            // Actualizar token en sesión
+            $expiresAt = now()->addSeconds($tokenData['expires_in']);
+            Session::put('spotify_token', $tokenData['access_token']);
+            Session::put('spotify_expires_at', $expiresAt);
 
-            // Actualizar refresh_token si viene uno nuevo
-            if (isset($token['refresh_token'])) {
-                Session::put('spotify_refresh_token', $token['refresh_token']);
+            // Spotify a veces envía un nuevo refresh_token
+            if (isset($tokenData['refresh_token'])) {
+                Session::put('spotify_refresh_token', $tokenData['refresh_token']);
             }
 
-            return $token['access_token'];
+            if (config('app.debug')) {
+                logger('✅ Token refrescado exitosamente');
+            }
+
+            return $tokenData['access_token'];
+
         } catch (\Exception $e) {
-            logger('Error refrescando token: ' . $e->getMessage());
+            logger('❌ Error refrescando token: ' . $e->getMessage());
+            
+            // Limpiar sesión si el refresh token es inválido
+            Session::forget(['spotify_token', 'spotify_refresh_token', 'spotify_expires_at']);
+            
             return null;
         }
     }
 
     /**
-     * Obtiene el token válido (refresha si es necesario)
+     * Obtiene el token válido (refresca automáticamente si es necesario)
      */
     private function getValidToken()
     {
@@ -229,8 +280,18 @@ class SpotifyController extends Controller
             return null;
         }
 
-        // Verificar si el token expiró
-        if (Session::has('spotify_expires_at') && now()->greaterThan(Session::get('spotify_expires_at'))) {
+        $expiresAt = Session::get('spotify_expires_at');
+        
+        // Si no hay fecha de expiración, asumir que expiró
+        if (!$expiresAt) {
+            return $this->refreshAccessToken();
+        }
+
+        // Si expira en menos de 5 minutos, refrescar preventivamente
+        if (now()->addMinutes(5)->greaterThan($expiresAt)) {
+            if (config('app.debug')) {
+                logger('⚠️ Token próximo a expirar, refrescando...');
+            }
             return $this->refreshAccessToken();
         }
 
@@ -240,72 +301,130 @@ class SpotifyController extends Controller
     /**
      * Verifica que el usuario esté autenticado
      */
-    private function checkAuth($returnJson = false)
+    private function checkAuth()
     {
         $token = $this->getValidToken();
         
         if (!$token) {
-            if ($returnJson) {
-                return response()->json(['error' => 'Debes iniciar sesión primero con Spotify'], 401);
-            }
-            return redirect()->route('spotify.login')->with('error', 'Debes iniciar sesión primero');
+            throw new \Exception('No authenticated. Please login first: GET /api/spotify/login');
         }
 
         return $token;
     }
 
     /**
-     * Retorna el estado de la sesión (para API)
+     * Maneja errores de la API de Spotify
+     */
+    private function handleSpotifyError(\Exception $e)
+    {
+        if ($e instanceof \GuzzleHttp\Exception\ClientException) {
+            $response = $e->getResponse();
+            $statusCode = $response->getStatusCode();
+            $errorBody = json_decode($response->getBody()->getContents(), true);
+
+            $message = match($statusCode) {
+                401 => 'Token inválido o expirado. Por favor inicia sesión nuevamente.',
+                403 => 'No tienes permisos para realizar esta acción.',
+                404 => 'Recurso no encontrado.',
+                429 => 'Demasiadas peticiones. Intenta más tarde.',
+                default => $errorBody['error']['message'] ?? 'Error de Spotify'
+            };
+
+            return response()->json([
+                'error' => $message,
+                'status_code' => $statusCode,
+                'spotify_error' => $errorBody
+            ], $statusCode);
+        }
+
+        return response()->json([
+            'error' => 'Error inesperado',
+            'message' => $e->getMessage()
+        ], 500);
+    }
+
+    /**
+     * Retorna el estado de la sesión
      */
     public function getSessionStatus()
     {
         $hasToken = Session::has('spotify_token');
+        $hasRefreshToken = Session::has('spotify_refresh_token');
         $expiresAt = Session::get('spotify_expires_at');
         $expired = $expiresAt ? now()->greaterThan($expiresAt) : true;
         
-        return response()->json([
+        $status = [
             'authenticated' => $hasToken && !$expired,
             'has_token' => $hasToken,
-            'has_refresh_token' => Session::has('spotify_refresh_token'),
+            'has_refresh_token' => $hasRefreshToken,
+            'token_type' => Session::get('spotify_token_type'),
+            'scope' => Session::get('spotify_scope'),
             'expires_at' => $expiresAt ? $expiresAt->toDateTimeString() : null,
             'expired' => $expired,
-            'message' => $hasToken && !$expired ? 
-                '✅ Sesión de Spotify activa' : 
-                '❌ No hay sesión activa de Spotify'
-        ]);
+        ];
+
+        if ($expiresAt && !$expired) {
+            $status['expires_in_minutes'] = now()->diffInMinutes($expiresAt);
+            $status['expires_in_seconds'] = now()->diffInSeconds($expiresAt);
+        }
+
+        $status['message'] = $hasToken && !$expired ? 
+            '✅ Sesión de Spotify activa' : 
+            '❌ No hay sesión activa. Usa GET /api/spotify/login';
+
+        return response()->json($status);
     }
 
     /**
-     * Muestra el perfil del usuario
+     * Muestra el dashboard después de autenticarse
      */
-    public function profile(Request $request)
+    public function dashboard()
     {
-        $token = $this->checkAuth($request->expectsJson());
-        
-        if ($token instanceof \Illuminate\Http\JsonResponse) {
-            return $token;
-        }
-
         try {
+            $token = $this->checkAuth();
             $client = new Client();
             
             $response = $client->get('https://api.spotify.com/v1/me', [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $token
-                ]
+                'headers' => ['Authorization' => 'Bearer ' . $token]
+            ]);
+
+            $user = json_decode($response->getBody(), true);
+
+            return view('spotify.dashboard', ['user' => $user]);
+
+        } catch (\Exception $e) {
+            return redirect()->route('home')->with('error', 'Debes iniciar sesión primero');
+        }
+    }
+
+    /**
+     * Obtiene el perfil del usuario
+     */
+    public function profile()
+    {
+        try {
+            $token = $this->checkAuth();
+            $client = new Client();
+            
+            $response = $client->get('https://api.spotify.com/v1/me', [
+                'headers' => ['Authorization' => 'Bearer ' . $token]
             ]);
 
             $user = json_decode($response->getBody(), true);
 
             return response()->json([
-                'profile' => $user,
-                'message' => 'Perfil obtenido exitosamente'
+                'success' => true,
+                'profile' => $user
             ]);
+
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Error al obtener el perfil',
-                'message' => $e->getMessage()
-            ], 500);
+            if ($e->getMessage() === 'No authenticated. Please login first: GET /api/spotify/login') {
+                return response()->json([
+                    'error' => $e->getMessage(),
+                    'authenticated' => false
+                ], 401);
+            }
+            return $this->handleSpotifyError($e);
         }
     }
 
@@ -314,69 +433,62 @@ class SpotifyController extends Controller
      */
     public function getPlaylists(Request $request)
     {
-        $token = $this->checkAuth($request->expectsJson());
-        
-        if ($token instanceof \Illuminate\Http\JsonResponse) {
-            return $token;
-        }
-
         try {
+            $token = $this->checkAuth();
             $client = new Client();
             
             $response = $client->get('https://api.spotify.com/v1/me/playlists', [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $token
-                ],
+                'headers' => ['Authorization' => 'Bearer ' . $token],
                 'query' => [
                     'limit' => $request->get('limit', 50),
                     'offset' => $request->get('offset', 0)
                 ]
             ]);
 
-            $playlists = json_decode($response->getBody(), true);
+            $data = json_decode($response->getBody(), true);
 
             return response()->json([
-                'playlists' => $playlists,
-                'total' => count($playlists['items'] ?? [])
+                'success' => true,
+                'playlists' => $data['items'],
+                'total' => $data['total'],
+                'limit' => $data['limit'],
+                'offset' => $data['offset'],
+                'has_more' => $data['next'] !== null
             ]);
+
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Error al obtener playlists',
-                'message' => $e->getMessage()
-            ], 500);
+            if ($e->getMessage() === 'No authenticated. Please login first: GET /api/spotify/login') {
+                return response()->json(['error' => $e->getMessage()], 401);
+            }
+            return $this->handleSpotifyError($e);
         }
     }
 
     /**
-     * Obtiene los detalles de una playlist específica
+     * Obtiene una playlist específica
      */
-    public function getPlaylist(Request $request, $id)
+    public function getPlaylist($id)
     {
-        $token = $this->checkAuth($request->expectsJson());
-        
-        if ($token instanceof \Illuminate\Http\JsonResponse) {
-            return $token;
-        }
-
         try {
+            $token = $this->checkAuth();
             $client = new Client();
             
             $response = $client->get("https://api.spotify.com/v1/playlists/{$id}", [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $token
-                ]
+                'headers' => ['Authorization' => 'Bearer ' . $token]
             ]);
 
             $playlist = json_decode($response->getBody(), true);
 
             return response()->json([
+                'success' => true,
                 'playlist' => $playlist
             ]);
+
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Error al obtener la playlist',
-                'message' => $e->getMessage()
-            ], 500);
+            if ($e->getMessage() === 'No authenticated. Please login first: GET /api/spotify/login') {
+                return response()->json(['error' => $e->getMessage()], 401);
+            }
+            return $this->handleSpotifyError($e);
         }
     }
 
@@ -385,125 +497,104 @@ class SpotifyController extends Controller
      */
     public function createPlaylist(Request $request)
     {
-        $token = $this->checkAuth($request->expectsJson());
-        
-        if ($token instanceof \Illuminate\Http\JsonResponse) {
-            return $token;
-        }
-
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'nullable|string|max:300',
             'public' => 'boolean'
         ]);
 
         try {
+            $token = $this->checkAuth();
             $client = new Client();
             
-            // Primero obtener el user_id
+            // Obtener user_id
             $userResponse = $client->get('https://api.spotify.com/v1/me', [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $token
-                ]
+                'headers' => ['Authorization' => 'Bearer ' . $token]
             ]);
-
             $user = json_decode($userResponse->getBody(), true);
-            $userId = $user['id'];
 
-            // Crear la playlist
-            $response = $client->post("https://api.spotify.com/v1/users/{$userId}/playlists", [
+            // Crear playlist
+            $response = $client->post("https://api.spotify.com/v1/users/{$user['id']}/playlists", [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $token,
                     'Content-Type' => 'application/json',
                 ],
                 'json' => [
-                    'name' => $request->name,
-                    'description' => $request->description ?? '',
-                    'public' => $request->public ?? false
+                    'name' => $validated['name'],
+                    'description' => $validated['description'] ?? '',
+                    'public' => $validated['public'] ?? false
                 ]
             ]);
 
             $playlist = json_decode($response->getBody(), true);
 
             return response()->json([
-                'message' => 'Playlist creada exitosamente',
+                'success' => true,
+                'message' => '✅ Playlist creada exitosamente',
                 'playlist' => $playlist
             ], 201);
+
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Error al crear la playlist',
-                'message' => $e->getMessage()
-            ], 500);
+            if ($e->getMessage() === 'No authenticated. Please login first: GET /api/spotify/login') {
+                return response()->json(['error' => $e->getMessage()], 401);
+            }
+            return $this->handleSpotifyError($e);
         }
     }
 
     /**
-     * Actualiza una playlist existente
+     * Actualiza una playlist
      */
     public function updatePlaylist(Request $request, $id)
     {
-        $token = $this->checkAuth($request->expectsJson());
-        
-        if ($token instanceof \Illuminate\Http\JsonResponse) {
-            return $token;
-        }
-
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'nullable|string|max:300',
             'public' => 'nullable|boolean'
         ]);
 
         try {
+            $token = $this->checkAuth();
             $client = new Client();
             
-            $response = $client->put("https://api.spotify.com/v1/playlists/{$id}", [
+            $client->put("https://api.spotify.com/v1/playlists/{$id}", [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $token,
                     'Content-Type' => 'application/json',
                 ],
-                'json' => array_filter([
-                    'name' => $request->name,
-                    'description' => $request->description,
-                    'public' => $request->public
-                ])
+                'json' => array_filter($validated)
             ]);
 
-            return response()->json(['message' => 'Playlist actualizada exitosamente']);
-        } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Error al actualizar la playlist',
-                'message' => $e->getMessage()
-            ], 500);
+                'success' => true,
+                'message' => '✅ Playlist actualizada exitosamente'
+            ]);
+
+        } catch (\Exception $e) {
+            if ($e->getMessage() === 'No authenticated. Please login first: GET /api/spotify/login') {
+                return response()->json(['error' => $e->getMessage()], 401);
+            }
+            return $this->handleSpotifyError($e);
         }
     }
 
     /**
-     * Busca canciones en Spotify
+     * Busca canciones
      */
     public function searchTracks(Request $request)
     {
-        $token = $this->checkAuth($request->expectsJson());
-        
-        if ($token instanceof \Illuminate\Http\JsonResponse) {
-            return $token;
-        }
-
-        $query = $request->get('q');
-
-        if (!$query) {
-            return response()->json(['error' => 'Query parameter "q" is required'], 400);
-        }
+        $request->validate([
+            'q' => 'required|string|min:1'
+        ]);
 
         try {
+            $token = $this->checkAuth();
             $client = new Client();
             
             $response = $client->get('https://api.spotify.com/v1/search', [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $token
-                ],
+                'headers' => ['Authorization' => 'Bearer ' . $token],
                 'query' => [
-                    'q' => $query,
+                    'q' => $request->get('q'),
                     'type' => 'track',
                     'limit' => $request->get('limit', 20),
                     'offset' => $request->get('offset', 0),
@@ -511,18 +602,22 @@ class SpotifyController extends Controller
                 ]
             ]);
 
-            $results = json_decode($response->getBody(), true);
+            $data = json_decode($response->getBody(), true);
 
             return response()->json([
-                'tracks' => $results['tracks'],
-                'query' => $query,
-                'total_results' => $results['tracks']['total'] ?? 0
+                'success' => true,
+                'query' => $request->get('q'),
+                'tracks' => $data['tracks']['items'],
+                'total' => $data['tracks']['total'],
+                'limit' => $data['tracks']['limit'],
+                'offset' => $data['tracks']['offset']
             ]);
+
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Error en la búsqueda',
-                'message' => $e->getMessage()
-            ], 500);
+            if ($e->getMessage() === 'No authenticated. Please login first: GET /api/spotify/login') {
+                return response()->json(['error' => $e->getMessage()], 401);
+            }
+            return $this->handleSpotifyError($e);
         }
     }
 
@@ -531,18 +626,14 @@ class SpotifyController extends Controller
      */
     public function addTracksToPlaylist(Request $request, $playlistId)
     {
-        $token = $this->checkAuth($request->expectsJson());
-        
-        if ($token instanceof \Illuminate\Http\JsonResponse) {
-            return $token;
-        }
-
-        $request->validate([
-            'uris' => 'required|array',
-            'uris.*' => 'required|string|regex:/^spotify:track:[a-zA-Z0-9]+$/'
+        $validated = $request->validate([
+            'uris' => 'required|array|min:1',
+            'uris.*' => 'required|string|regex:/^spotify:track:[a-zA-Z0-9]+$/',
+            'position' => 'nullable|integer|min:0'
         ]);
 
         try {
+            $token = $this->checkAuth();
             $client = new Client();
             
             $response = $client->post("https://api.spotify.com/v1/playlists/{$playlistId}/tracks", [
@@ -551,22 +642,24 @@ class SpotifyController extends Controller
                     'Content-Type' => 'application/json',
                 ],
                 'json' => [
-                    'uris' => $request->uris,
-                    'position' => $request->get('position', 0)
+                    'uris' => $validated['uris'],
+                    'position' => $validated['position'] ?? 0
                 ]
             ]);
 
             $result = json_decode($response->getBody(), true);
 
             return response()->json([
-                'message' => 'Canciones agregadas exitosamente',
+                'success' => true,
+                'message' => '✅ ' . count($validated['uris']) . ' canción(es) agregada(s) exitosamente',
                 'snapshot_id' => $result['snapshot_id']
             ]);
+
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Error al agregar canciones',
-                'message' => $e->getMessage()
-            ], 500);
+            if ($e->getMessage() === 'No authenticated. Please login first: GET /api/spotify/login') {
+                return response()->json(['error' => $e->getMessage()], 401);
+            }
+            return $this->handleSpotifyError($e);
         }
     }
 
@@ -575,66 +668,52 @@ class SpotifyController extends Controller
      */
     public function removeTracksFromPlaylist(Request $request, $playlistId)
     {
-        $token = $this->checkAuth($request->expectsJson());
-        
-        if ($token instanceof \Illuminate\Http\JsonResponse) {
-            return $token;
-        }
-
-        $request->validate([
-            'uris' => 'required|array',
+        $validated = $request->validate([
+            'uris' => 'required|array|min:1',
             'uris.*' => 'required|string|regex:/^spotify:track:[a-zA-Z0-9]+$/'
         ]);
 
         try {
+            $token = $this->checkAuth();
             $client = new Client();
             
-            $tracks = array_map(function($uri) {
-                return ['uri' => $uri];
-            }, $request->uris);
+            $tracks = array_map(fn($uri) => ['uri' => $uri], $validated['uris']);
 
             $response = $client->delete("https://api.spotify.com/v1/playlists/{$playlistId}/tracks", [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $token,
                     'Content-Type' => 'application/json',
                 ],
-                'json' => [
-                    'tracks' => $tracks
-                ]
+                'json' => ['tracks' => $tracks]
             ]);
 
             $result = json_decode($response->getBody(), true);
 
             return response()->json([
-                'message' => 'Canciones eliminadas exitosamente',
+                'success' => true,
+                'message' => '✅ ' . count($validated['uris']) . ' canción(es) eliminada(s) exitosamente',
                 'snapshot_id' => $result['snapshot_id']
             ]);
+
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Error al eliminar canciones',
-                'message' => $e->getMessage()
-            ], 500);
+            if ($e->getMessage() === 'No authenticated. Please login first: GET /api/spotify/login') {
+                return response()->json(['error' => $e->getMessage()], 401);
+            }
+            return $this->handleSpotifyError($e);
         }
     }
 
     /**
      * Obtiene las canciones de una playlist
      */
-    public function getPlaylistTracks(Request $request, $playlistId)
+    public function getPlaylistTracks($playlistId, Request $request)
     {
-        $token = $this->checkAuth($request->expectsJson());
-        
-        if ($token instanceof \Illuminate\Http\JsonResponse) {
-            return $token;
-        }
-
         try {
+            $token = $this->checkAuth();
             $client = new Client();
             
             $response = $client->get("https://api.spotify.com/v1/playlists/{$playlistId}/tracks", [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $token
-                ],
+                'headers' => ['Authorization' => 'Bearer ' . $token],
                 'query' => [
                     'limit' => $request->get('limit', 50),
                     'offset' => $request->get('offset', 0),
@@ -642,56 +721,34 @@ class SpotifyController extends Controller
                 ]
             ]);
 
-            $tracks = json_decode($response->getBody(), true);
+            $data = json_decode($response->getBody(), true);
 
             return response()->json([
-                'tracks' => $tracks
+                'success' => true,
+                'tracks' => $data['items'],
+                'total' => $data['total'],
+                'limit' => $data['limit'],
+                'offset' => $data['offset']
             ]);
+
         } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Error al obtener las canciones',
-                'message' => $e->getMessage()
-            ], 500);
+            if ($e->getMessage() === 'No authenticated. Please login first: GET /api/spotify/login') {
+                return response()->json(['error' => $e->getMessage()], 401);
+            }
+            return $this->handleSpotifyError($e);
         }
     }
 
     /**
-     * Cierra la sesión de Spotify
+     * Cierra la sesión
      */
-    public function logout(Request $request)
+    public function logout()
     {
-        Session::forget('spotify_token');
-        Session::forget('spotify_refresh_token');
-        Session::forget('spotify_expires_at');
+        Session::forget(['spotify_token', 'spotify_refresh_token', 'spotify_expires_at', 'spotify_token_type', 'spotify_scope', 'spotify_state']);
 
         return response()->json([
-            'message' => 'Sesión de Spotify cerrada exitosamente',
-            'session_cleared' => !Session::has('spotify_token')
-        ]);
-    }
-
-    /**
-     * Método de debug para verificar configuración
-     */
-    public function debugConfig()
-    {
-        return response()->json([
-            'forced_values' => [
-                'client_id' => $this->clientId,
-                'redirect_uri' => $this->redirectUri,
-            ],
-            'environment' => [
-                'env_client_id' => env('SPOTIFY_CLIENT_ID'),
-                'env_redirect_uri' => env('SPOTIFY_REDIRECT_URI'),
-            ],
-            'configuration' => [
-                'config_client_id' => config('spotify.client_id'),
-                'config_redirect_uri' => config('spotify.redirect_uri'),
-            ],
-            'files' => [
-                'config_file_exists' => file_exists(config_path('spotify.php')),
-                'env_file_exists' => file_exists(base_path('.env')),
-            ]
+            'success' => true,
+            'message' => '✅ Sesión de Spotify cerrada exitosamente'
         ]);
     }
 }
