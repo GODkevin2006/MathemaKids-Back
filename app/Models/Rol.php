@@ -15,6 +15,7 @@ class Rol extends Model
 
     protected $fillable = [
         'nombre_rol',   
+        "estado"
     ];  
 
     public function usuario()
