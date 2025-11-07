@@ -19,6 +19,7 @@ return new class extends Migration
             $table->date('fecha_publicacion');
             $table->string('imagen_destacada');
             $table->string('numero_vistas');
+            $table->string('estado')->default('activo');
 
             // relacion con la tabla de usuario
 

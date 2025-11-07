@@ -43,7 +43,8 @@ class CategoriaService{
             return null;
         }
 
-        $categoria->delete();
+        $categoria->estado = $categoria->estado === 'activo' ? 'inactivo' : 'activo';
+        $categoria->save();
 
         return true;
         }

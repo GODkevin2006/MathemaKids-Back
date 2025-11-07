@@ -46,7 +46,8 @@ class PublicacionService
             return null;
         }
 
-        $publicacion->delete();
+        $publicacion->estado = $publicacion->estado === 'activo' ? 'inactivo' : 'activo';
+        $publicacion->save();
 
         return true;
     }
