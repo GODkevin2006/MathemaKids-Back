@@ -18,13 +18,19 @@ class Publicacion extends Model
         'tipo_publicacion',
         'titulo',
         'contenido',
-        'fecha_publicada',
+        'fecha_publicacion',
         'imagen_destacada',
-        'vistas',
+        'numero_vistas',
     ];
 
     public function user()
     {
-        return $this->belongsTo(AuthUser::class,'id_usuario', 'id_usuario');
+        return $this->belongsTo(User::class,'id_usuario', 'id_usuario');
     }
+
+    public function categoria()
+    {
+        return $this->belongsTo(Categoria::class,'id_categoria', 'id_categoria');
+    }
+
 }

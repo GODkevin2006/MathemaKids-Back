@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('contenido');
             $table->date('fecha_publicacion');
             $table->string('imagen_destacada');
-            $table->string('vistas');
+            $table->string('numero_vistas');
 
             // relacion con la tabla de usuario
 

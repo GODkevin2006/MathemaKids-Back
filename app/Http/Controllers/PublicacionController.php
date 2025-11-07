@@ -50,7 +50,7 @@ class PublicacionController extends Controller
             ],201);
         } catch (\Exception $e) {
             return response()->json([
-                'Error'=>'No se pudo registro la publicacion.',
+                'Error'=>'No se pudo registrar la publicacion.',
                 'Data'=>$e
             ], 400);
         }
@@ -77,7 +77,7 @@ class PublicacionController extends Controller
 
         } catch (\Exception $e) {
             return response()->json([
-                'Error'=>'No se pudo registro la publicacion.',
+                'Error'=>'No se encontro la publicacion.',
                 'Data'=>$e
             ], 400);
         }
@@ -86,14 +86,14 @@ class PublicacionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(PublicacionRequest $request, $id_publicacion)
+    public function update(PublicacionRequest $camposActualizados, $id_publicacion)
     {
         try {
-            $publicacion = $this->servicioPublicacion::actualizarPublicacion($request->validated(), $id_publicacion);
+            $publicacion = $this->servicioPublicacion::actualizarPublicacion($camposActualizados->validated(), $id_publicacion);
 
             if(!$publicacion) {
                 return response()->json([
-                    'Error'=> 'La publicacion no se encontro'
+                    'Error'=> 'La publicacion no se pudo encontrar'
                 ],404);
             }
 
