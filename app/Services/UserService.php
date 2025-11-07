@@ -10,23 +10,9 @@ use Illuminate\Support\Str;
 class UserService
 {
     public static function crearUsuario($registroUsuario)
-{
-    // Si el request trae un id_rol, lo usamos. Si no, buscamos el rol "Usuario"
-    $rol_id = $registroUsuario['id_rol'] ?? Rol::where('nombre_rol', 'Usuario')->value('id_rol');
-
-    if (!$rol_id) {
-        throw new \Exception('No se encontró un rol válido para el usuario.');
+    {
+        return User::create($registroUsuario);
     }
-
-    // Crear usuario con rol asignado
-    return User::create([
-        'nombres' => $registroUsuario['nombres'],
-        'apellidos' => $registroUsuario['apellidos'],
-        'correo' => $registroUsuario['correo'],
-        'contraseña' => $registroUsuario['contraseña'],
-        'id_rol' => $rol_id,
-    ]);
-}
 
 
     public static function listarUsuarios()
@@ -56,10 +42,11 @@ class UserService
         $usuario = User::find($id_usuario);
 
         if (!$usuario) {
-            return null;
+            return null;  
         }
-
-        $usuario->delete();
+        //para que cuando yo haga un delete no me borre los datos y solo cambie el campo de estado a inactivo
+        $usuario->estado = $usuario->estado === 'activo' ? 'inactivo' : 'activo';
+        $usuario->save();
         return true;
     }
 }

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->date('fecha_creacion');
             $table->date('fecha_actualizacion');
             $table->string('archivo_adjunto');
+            $table->string('estado')->default('activo');
 
             // relacion con la tabla de usuario
 

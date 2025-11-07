@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('correo')->unique();
             $table->string('contraseña');
             $table->string('token_verificado')->nullable();
+            $table->string('estado')->default('activo');
             
             // relacion con la tabla rol
 

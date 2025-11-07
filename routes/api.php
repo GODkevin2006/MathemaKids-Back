@@ -5,6 +5,7 @@ use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\RolController;
 use App\Http\Controllers\PublicacionController;
 use App\Http\Controllers\ProyectoController;
+use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\SpotifyController;
 use Illuminate\Http\Request; 
 
@@ -51,4 +52,4 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/playlists/{id}/tracks', [SpotifyController::class, 'addTracksToPlaylist'])->name('playlists.addTracks');
         Route::delete('/playlists/{id}/tracks', [SpotifyController::class, 'removeTracksFromPlaylist'])->name('playlists.removeTracks');
     });
-});
+});Route::apiResource('categoria', CategoriaController::class);
