@@ -56,7 +56,7 @@ class UserService
         $usuario = User::find($id_usuario);
 
         if (!$usuario) {
-            return null;
+            return null;  
         }
 
         $usuario->delete();

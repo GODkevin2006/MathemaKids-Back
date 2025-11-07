@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('rol', function (Blueprint $table) {
             $table->id('id_rol');
             $table->string('nombre_rol');
+            $table->string('estado')->default('activo');
             $table->timestamps();
         });
     }
