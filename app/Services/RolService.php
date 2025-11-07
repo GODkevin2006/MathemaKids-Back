@@ -43,8 +43,7 @@ class RolService{
             return null;
         }
 
-        $rol->estado = $rol->estado === 'activo' ? 'inactivo' : 'activo';
-        $rol->save();
+        $rol->update(['estado'=>'inactivo']);
 
         return true;
         }

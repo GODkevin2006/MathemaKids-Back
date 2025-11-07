@@ -24,7 +24,8 @@ class CategoriaRequest extends FormRequest
         $isUpdate = in_array($this->method(), ['PUT','PATCH']);
         return [
             'nombre_categoria' => ($isUpdate ? 'sometimes' : 'required').'|string|max:30|min:1',
-            'orden_publicacion' => ($isUpdate ? 'sometimes' : 'required'). '|integer|max:30|min:1'
+            'orden_publicacion' => ($isUpdate ? 'sometimes' : 'required'). '|integer|max:30|min:1',
+            'estado'  => ($isUpdate ? 'sometimes' : 'required') . '|in:activo,inactivo',
         ];
     
     }
@@ -43,6 +44,12 @@ class CategoriaRequest extends FormRequest
         'orden_publicacion.string' => 'El campo orden publicacion debe contener solo texto.',
         'orden_publicacion.min' => 'El orden publicacion debe tener al menos 10 caracteres.',
         'orden_publicacion.max' => 'El orden publicacion no puede tener más de 30 caracteres.',
+
+        // Estado
+        'estado.required' => 'El campo estado es obligatorio.',
+        'estado.sometimes' => 'El campo estado es opcional para actualización.',
+        'estado.in' => 'El estado debe ser "activo" o "inactivo".',
+
 
     ];
     }

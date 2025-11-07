@@ -19,6 +19,7 @@ class ProyectoRequest extends FormRequest
             'nombre' => ($isUpdate ? 'sometimes' : 'required') . '|string|max:50',
             'descripcion' => ($isUpdate ? 'sometimes' : 'required') . '|string|max:500|min:10',
             'imagen_portada' => ($isUpdate ? 'sometimes' : 'required') . '|string|max:255',
+            'estado'  => ($isUpdate ? 'sometimes' : 'required') . '|in:activo,inactivo',
         ];
 
         // 🔹 Solo exigir id_usuario cuando se crea (POST)
@@ -47,6 +48,10 @@ class ProyectoRequest extends FormRequest
         'imagen_portada.required' => 'La imagen de portada es obligatoria.',
         'imagen_portada.string' => 'La imagen de portada debe ser una cadena de texto (por ejemplo, una URL o ruta).',
         'imagen_portada.max' => 'La imagen de portada no puede tener más de 255 caracteres.',
+
+        'estado.required' => 'El campo estado es obligatorio.',
+        'estado.sometimes' => 'El campo estado es opcional para actualización.',
+        'estado.in' => 'El estado debe ser "activo" o "inactivo".',
     ];
 }
 

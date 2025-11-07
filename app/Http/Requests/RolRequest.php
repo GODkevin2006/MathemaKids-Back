@@ -24,6 +24,7 @@ class RolRequest extends FormRequest
         $isUpdate = in_array($this->method(), ['PUT','PATCH']);
         return [
             'nombre_rol' => ($isUpdate ? 'sometimes' : 'required').'|string|unique:rol|max:30|min:5',
+            'estado'  => ($isUpdate ? 'sometimes' : 'required') . '|in:activo,inactivo',
         ];
     
     }
@@ -35,6 +36,10 @@ class RolRequest extends FormRequest
             'nombre_rol.string' => 'El nombre del rol debe ser una cadena de texto.',
             'nombre_rol.max' => 'El nombre del rol no puede tener más de 30 caracteres.',
             'nombre_rol.unique' => 'Este nombre de rol ya existe.',
+
+            'estado.required' => 'El campo estado es obligatorio.',
+            'estado.sometimes' => 'El campo estado es opcional para actualización.',
+            'estado.in' => 'El estado debe ser "activo" o "inactivo".',
         ];
     }
 }

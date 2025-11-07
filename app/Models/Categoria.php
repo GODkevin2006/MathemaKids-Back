@@ -15,7 +15,8 @@ class Categoria extends Model
 
     protected $fillable = [
         'nombre_categoria',
-        'orden_publicacion'
+        'orden_publicacion',
+        'estado'
     ];
 
  public function publicacion()

@@ -45,8 +45,8 @@ class UserService
             return null;  
         }
         //para que cuando yo haga un delete no me borre los datos y solo cambie el campo de estado a inactivo
-        $usuario->estado = $usuario->estado === 'activo' ? 'inactivo' : 'activo';
-        $usuario->save();
+        $usuario->update(['estado'=>'inactivo']);
+
         return true;
     }
 }
