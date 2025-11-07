@@ -13,8 +13,9 @@ class CategoriaController extends Controller
     protected CategoriaService $servicioCategoria;
 
 
-    public function __construct(){
-        return $this->servicioCategoria = new CategoriaService;
+    public function __construct()
+    { 
+        return $this->servicioCategoria = new CategoriaService();
     }
 
     public function index()

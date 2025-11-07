@@ -1,0 +1,50 @@
+<?php
+
+namespace App\Services;
+use App\Models\ContenidoProyecto;
+
+class ContenidoProyectoService{
+    public static function crearContenidoProyecto($registroContenidoProyecto){
+        return contenidoproyecto::create($registroContenidoProyecto);
+    }
+
+
+    public static function listarContenidoProyecto(){
+        return contenidoproyecto::get();
+    }
+
+    public static function obtenerContenidoProyecto($id_contenido){
+        $contenidoproyecto = contenidoproyecto::find($id_contenido);
+
+        if(!$contenidoproyecto)
+        {
+            return null;
+        }
+
+        return $contenidoproyecto;
+    }
+
+    public static function actualizarContenidoProyecto($camposActualizados,$id_contenido){
+        $contenidoproyecto = contenidoproyecto::find($id_contenido);
+
+        if(!$contenidoproyecto) {
+            return null;
+        }
+
+        $contenidoproyecto->update($camposActualizados);
+
+        return $contenidoproyecto->fresh();
+        }
+
+    public static function eliminarContenidoProyecto($id_contenido){
+        $contenidoproyecto = contenidoproyecto::find($id_contenido);
+
+        if(!$contenidoproyecto){
+            return null;
+        }
+
+        $contenidoproyecto->delete();
+
+        return true;
+        }
+}
