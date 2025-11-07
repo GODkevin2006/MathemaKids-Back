@@ -19,7 +19,7 @@ class UserService
     }
 
     // Crear usuario con rol asignado
-    return User::create([
+    return user::create([
         'nombres' => $registroUsuario['nombres'],
         'apellidos' => $registroUsuario['apellidos'],
         'correo' => $registroUsuario['correo'],

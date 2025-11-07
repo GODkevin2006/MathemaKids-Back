@@ -7,15 +7,15 @@ use App\Models\Publicacion;
 class PublicacionService
 {
     public static function crearPublicacion($registrarPublicacion){
-        return Publicacion::create($registrarPublicacion);
+        return publicacion::create($registrarPublicacion);
     }
 
     public static function listarPublicaciones(){
-        return Publicacion::get();
+        return publicacion::get();
     }
 
     public static function obtenerPublicacion($id_publicacion){
-        $publicacion = Publicacion::find($id_publicacion);
+        $publicacion = publicacion::find($id_publicacion);
 
         if(!$publicacion)
         {
@@ -27,7 +27,7 @@ class PublicacionService
 
     public static function actualizarPublicacion($camposActualizados, $id_publicacion)
     {
-        $publicacion = Publicacion::find($id_publicacion);
+        $publicacion = publicacion::find($id_publicacion);
 
         if(!$publicacion)
         {
@@ -39,7 +39,7 @@ class PublicacionService
     }
 
     public static function eliminarPublicacion($id_publicacion){
-        $publicacion = Publicacion::find($id_publicacion);
+        $publicacion = publicacion::find($id_publicacion);
 
         if(!$publicacion)
         {
