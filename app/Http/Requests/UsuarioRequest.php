@@ -34,7 +34,7 @@ class UsuarioRequest extends FormRequest
     
     }
 
-    public function meesage(): array
+    public function messages(): array
     {
     return [
         // Nombres
