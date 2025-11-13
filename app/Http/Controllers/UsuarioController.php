@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UsuarioRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use App\Services\UserService;
 
 
@@ -41,11 +42,21 @@ class UsuarioController extends Controller
     public function store(UsuarioRequest $registro)
     {
          try {
-            $usuarioRegistrado = $this->servicioUsuario::crearUsuario($registro->validated());
+      
+        $datosRegistros= $registro->validated();
+
+             // Encriptamos la contraseña y agregamos otros campos
+            $datosRegistros['contraseña'] = bcrypt($registro->input('contraseña'));
+            $datosRegistros['activo'] = true;
+
+            
+            $usuarioRegistrado = $this->servicioUsuario::crearUsuario($datosRegistros);
+
+            $usuarioVisible = collect($usuarioRegistrado)->except(['contraseña', 'correo']);
 
             return response()->json([
                 'succes' => 'El usuario se registró correctamente',
-                'data' => $usuarioRegistrado,
+                'data' => $usuarioVisible,
             ],201);
         
         } catch (\Exception $e) {
