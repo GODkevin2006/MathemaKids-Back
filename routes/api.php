@@ -33,7 +33,7 @@ Route::get('categoria/{id}', [CategoriaController::class, 'show']);
 
 
 // rutas de el rol ADMIN protegidas, basicamente acceso a todo
-Route::middleware(['auth:sanctum', 'rol:1'])->group(function () {
+Route::middleware(['rol:1'])->group(function () {
     Route::apiResource('usuario', UsuarioController::class);
     Route::apiResource('rol', RolController::class);
     Route::apiResource('publicacion', PublicacionController::class);
@@ -43,7 +43,7 @@ Route::middleware(['auth:sanctum', 'rol:1'])->group(function () {
 });
 
 // rutas de el rol MODERADOR protegidas acceso a toso pero solo de las que se ven
-Route::middleware(['auth:sanctum', 'rol:2'])->group(function () {
+Route::middleware(['rol:2'])->group(function () {
     Route::apiResource('publicacion', PublicacionController::class);
     Route::apiResource('proyecto', ProyectoController::class);
     Route::apiResource('categoria', CategoriaController::class);
@@ -51,7 +51,7 @@ Route::middleware(['auth:sanctum', 'rol:2'])->group(function () {
 });
 
 // rutas protegidas de USUARIO 
-Route::middleware(['auth:sanctum', 'rol:3'])->group(function () {
+Route::middleware(['rol:3'])->group(function () {
 
     // Publicaciones propias
     Route::apiResource('publicacion', PublicacionController::class);
@@ -70,7 +70,7 @@ Route::middleware(['auth:sanctum', 'rol:3'])->group(function () {
 
 
 // admin rutas
-Route::middleware(['auth:api','rol :1'])->group(function () {
+Route::middleware(['rol:1'])->group(function () {
     route::post('/register', [UsuarioController::class, 'register']);   
     route::post('/register', [SpotifyController::class, 'register']);  
     route::post('/register', [RolController::class, 'register']);  
@@ -80,7 +80,7 @@ Route::middleware(['auth:api','rol :1'])->group(function () {
     route::post('/register', [CategoriaController::class, 'register']);  
 });
 
-Route::middleware(['auth:api','rol :2'])->group(function () {
+Route::middleware(['rol:2'])->group(function () {
     route::post('/register', [PublicacionController::class, 'register']);
     route::post('/register', [ProyectoController::class, 'register']); 
     route::post('/register', [ContenidoProyectoController::class, 'register']); 
@@ -89,7 +89,7 @@ Route::middleware(['auth:api','rol :2'])->group(function () {
 });
 
 
-Route::middleware(['auth:api','rol :3'])->group(function () {
+Route::middleware(['rol:3'])->group(function () {
     route::post('/register', [UsuarioController::class, 'register']); 
     route::post('/register', [PublicacionController::class, 'register']); 
 });
