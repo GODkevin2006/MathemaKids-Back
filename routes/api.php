@@ -15,6 +15,34 @@ Route::apiResource('publicacion', PublicacionController::class);
 Route::apiResource('proyecto', ProyectoController::class);
 Route::apiResource('categoria', CategoriaController::class);
 
+// admin rutas
+Route::middleware(['auth:api','rol :1'])->group(function () {
+    route::post('/register', [UsuarioController::class, 'register']);   
+    route::post('/register', [SpotifyController::class, 'register']);  
+    route::post('/register', [RolController::class, 'register']);  
+    route::post('/register', [PublicacionController::class, 'register']);  
+    route::post('/register', [ProyectoController::class, 'register']);  
+    route::post('/register', [ContenidoProyectoController::class, 'register']);  
+    route::post('/register', [CategoriaController::class, 'register']);  
+});
+
+Route::middleware(['auth:api','rol :2'])->group(function () {
+    route::post('/register', [PublicacionController::class, 'register']);
+    route::post('/register', [ProyectoController::class, 'register']); 
+    route::post('/register', [ContenidoProyectoController::class, 'register']); 
+    route::post('/register', [CategoriaController::class, 'register']);   
+    route::post('/register', [SpotifyController::class, 'register']); 
+});
+
+
+Route::middleware(['auth:api','rol :3'])->group(function () {
+    route::post('/register', [UsuarioController::class, 'register']); 
+    route::post('/register', [PublicacionController::class, 'register']); 
+});
+
+
+
+
 // Rutas de Spotify (separadas y agrupadas)
 Route::prefix('spotify')->group(function () {
     // Autenticación
