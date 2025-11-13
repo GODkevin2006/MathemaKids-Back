@@ -87,55 +87,84 @@ class PublicacionController extends Controller
      * Update the specified resource in storage.
      */
     public function update(PublicacionRequest $camposActualizados, $id_publicacion)
-    {
-        try {
-            $publicacion = $this->servicioPublicacion::actualizarPublicacion($camposActualizados->validated(), $id_publicacion);
+  {
+    try {
+        $user = auth()->user();
 
-            if(!$publicacion) {
-                return response()->json([
-                    'Error'=> 'La publicacion no se pudo encontrar'
-                ],404);
-            }
+        // Buscar la publicación
+        $publicacionExistente = \App\Models\Publicacion::find($id_publicacion);
 
+        if (!$publicacionExistente) {
             return response()->json([
-                'Success'=>'La publicacion se actualizo correctamente.',
-                'Data'=>$publicacion
-            ],200);
+                'Error' => 'La publicación no se pudo encontrar.'
+            ], 404);
+        }
 
-        } catch (\Exception $e) {
+        // Validar que la publicación sea del usuario autenticado
+        if ($publicacionExistente->id_usuario !== $user->id_usuario) {
             return response()->json([
-                'Error'=>'No se pudo actualizar la publicacion.',
-                'Data'=>$e
+                'Error' => 'No puedes modificar esta publicación.'
+            ], 403);
+        }
+
+        // Actualizar usando el servicio
+        $publicacion = $this->servicioPublicacion::actualizarPublicacion(
+            $camposActualizados->validated(),
+            $id_publicacion
+        );
+
+        return response()->json([
+            'Success' => 'La publicación se actualizó correctamente.',
+            'Data' => $publicacion
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'Error' => 'No se pudo actualizar la publicación.',
+            'Data' => $e->getMessage()
+        ], 400);
+    }
+  }
+
+public function destroy($id_publicacion)
+  {
+    try {
+        $user = auth()->user();
+
+        // Buscar la publicación
+        $publicacionExistente = \App\Models\Publicacion::find($id_publicacion);
+
+        if (!$publicacionExistente) {
+            return response()->json([
+                'Error' => 'La publicación no se encontró.'
+            ], 404);
+        }
+
+        //  Validar que la publicación sea del usuario autenticado
+        if ($publicacionExistente->id_usuario !== $user->id_usuario) {
+            return response()->json([
+                'Error' => 'No puedes eliminar esta publicación.'
+            ], 403);
+        }
+
+        // Eliminar usando el servicio
+        $publicacion = $this->servicioPublicacion::eliminarPublicacion($id_publicacion);
+
+        if (!$publicacion) {
+            return response()->json([
+                'Error' => 'No se pudo eliminar la publicación.'
             ], 400);
         }
+
+        return response()->json([
+            'Success' => 'La publicación se eliminó correctamente.'
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'Error' => 'No se pudo eliminar la publicación.',
+            'Data' => $e->getMessage()
+        ], 400);
     }
-
-  
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy( $id_publicacion)
-    {
-    
-        try {
-            $publicacion = $this->servicioPublicacion::eliminarPublicacion($id_publicacion);
-
-            if(!$publicacion) {
-                return response()->json([
-                    'Error'=>'La publicacion no se encontro'
-                ],404);            
-            }
-
-            return response()->json([
-                'Success'=>'La publicacion se elimino correctamente.',
-            ],200);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'Error'=>'No se pudo eliminar la publicacion.',
-                'Data'=>$e
-            ], 400);
-        }
-    }
-   
+  }
 }

@@ -6,14 +6,68 @@ use App\Http\Controllers\RolController;
 use App\Http\Controllers\PublicacionController;
 use App\Http\Controllers\ProyectoController;
 use App\Http\Controllers\CategoriaController;
+use App\Http\Controllers\ContenidoProyectoController;
 use App\Http\Controllers\SpotifyController;
 
-// Rutas CRUD principales de tu aplicación
+// Rutas CRUD principales de la web
 Route::apiResource('usuario', UsuarioController::class);
 Route::apiResource('rol', RolController::class);    
 Route::apiResource('publicacion', PublicacionController::class);
 Route::apiResource('proyecto', ProyectoController::class);
 Route::apiResource('categoria', CategoriaController::class);
+Route::apiResource('contenido_proyecto', ContenidoProyectoController::class);
+
+
+// rutas PUBLICAS para usuarios que no inicien sesión, pueden solo ver y listar
+Route::get('publicacion', [PublicacionController::class, 'index']);
+Route::get('publicacion/{id}', [PublicacionController::class, 'show']);
+
+Route::get('proyecto', [ProyectoController::class, 'index']);
+Route::get('proyecto/{id}', [ProyectoController::class, 'show']);
+
+Route::get('contenido_proyecto', [ContenidoProyectoController::class, 'index']);
+Route::get('contenido_proyecto/{id}', [ContenidoProyectoController::class, 'show']);
+
+Route::get('categoria', [CategoriaController::class, 'index']);
+Route::get('categoria/{id}', [CategoriaController::class, 'show']);
+
+
+// rutas de el rol ADMIN protegidas, basicamente acceso a todo
+Route::middleware(['auth:sanctum', 'rol:1'])->group(function () {
+    Route::apiResource('usuario', UsuarioController::class);
+    Route::apiResource('rol', RolController::class);
+    Route::apiResource('publicacion', PublicacionController::class);
+    Route::apiResource('proyecto', ProyectoController::class);
+    Route::apiResource('categoria', CategoriaController::class);
+    Route::apiResource('contenido_proyecto', ContenidoProyectoController::class);
+});
+
+// rutas de el rol MODERADOR protegidas acceso a toso pero solo de las que se ven
+Route::middleware(['auth:sanctum', 'rol:2'])->group(function () {
+    Route::apiResource('publicacion', PublicacionController::class);
+    Route::apiResource('proyecto', ProyectoController::class);
+    Route::apiResource('categoria', CategoriaController::class);
+    Route::apiResource('contenido_proyecto', ContenidoProyectoController::class);
+});
+
+// rutas protegidas de USUARIO 
+Route::middleware(['auth:sanctum', 'rol:3'])->group(function () {
+
+    // Publicaciones propias
+    Route::apiResource('publicacion', PublicacionController::class);
+
+    // solo Ver proyectos y contenido de los mismos
+    Route::get('proyecto', [ProyectoController::class, 'index']);
+    Route::get('proyecto/{id}', [ProyectoController::class, 'show']);
+    Route::get('contenido_proyecto', [ContenidoProyectoController::class, 'index']);
+    Route::get('contenido_proyecto/{id}', [ContenidoProyectoController::class, 'show']);
+
+    // solo Ver categorías que ya estén en la tabla
+    Route::get('categoria', [CategoriaController::class, 'index']);
+    Route::get('categoria/{id}', [CategoriaController::class, 'show']);
+});
+
+
 
 // Rutas de Spotify (separadas y agrupadas)
 Route::prefix('spotify')->group(function () {
