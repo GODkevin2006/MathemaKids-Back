@@ -9,9 +9,23 @@ class RolMiddleware
 {
     public function handle(Request $request, Closure $next, $rol)
     {
-        if(!$request->user() || $request->user()->id_rol !== $rol){
-            return response()->json(['error' => 'Unauthjdhjhjgorized'], 403);
+        // Verificar si hay usuario autenticado por JWT
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'error' => 'No autenticado. Token inválido o ausente.'
+            ], 401);
+        }
+
+
+        if ((string) $user->id_rol !== (string) $rol) {
+            return response()->json([
+                'error' => 'No autorizado. Tu rol no tiene acceso a esta ruta.',
+            ], 403);
+        }
+
+        return $next($request);
     }
-    return $next($request);
-}
+
 }

@@ -5,13 +5,17 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
-   
     protected $table = 'usuario';
     protected $primaryKey = 'id_usuario';
+
+    protected $hidden = [
+        'contraseña',
+    ];
 
     protected $fillable = [
         'nombres',
@@ -22,14 +26,25 @@ class User extends Authenticatable
         'id_rol'
     ];
 
- public function rol()
- {
-    return $this->belongTo(Rol::class,'id_rol','id_rol');
-    
- }
- public function proyecto()
- {
-    return $this->hasMany(Proyecto::class,'id_usuario','id_usuario');
-    
- }
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
+    }
+
+    // Campo que actúa como "email" para login
+    public function username()
+    {
+        return 'correo';
+    }
+
+    // Campo que actúa como "password"
+    public function getAuthPassword()
+    {
+        return $this->contraseña;
+    }
 }

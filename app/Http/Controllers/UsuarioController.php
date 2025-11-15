@@ -2,19 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
 use App\Http\Requests\UsuarioRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Services\UserService;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
 
 
 class UsuarioController extends Controller
 {
-   
+
     protected UserService $servicioUsuario;
 
 
-    public function __construct(){
+    public function __construct()
+    {
         return $this->servicioUsuario = new UserService;
     }
 
@@ -25,14 +29,14 @@ class UsuarioController extends Controller
 
             return response()->json([
                 'success' => 'Se listaron correctamente',
-                'data' =>$usuarios
-            ],200);
+                'data' => $usuarios
+            ], 200);
 
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'No se pudo listar los usuarios',
-                'data' =>$e
-            ],400);
+                'data' => $e
+            ], 400);
         }
     }
 
@@ -41,15 +45,15 @@ class UsuarioController extends Controller
      */
     public function store(UsuarioRequest $registro)
     {
-         try {
-      
-        $datosRegistros= $registro->validated();
+        try {
 
-             // Encriptamos la contraseña y agregamos otros campos
+            $datosRegistros = $registro->validated();
+
+            // Encriptamos la contraseña y agregamos otros campos
             $datosRegistros['contraseña'] = bcrypt($registro->input('contraseña'));
             $datosRegistros['activo'] = true;
 
-            
+
             $usuarioRegistrado = $this->servicioUsuario::crearUsuario($datosRegistros);
 
             $usuarioVisible = collect($usuarioRegistrado)->except(['contraseña', 'correo']);
@@ -57,17 +61,17 @@ class UsuarioController extends Controller
             return response()->json([
                 'succes' => 'El usuario se registró correctamente',
                 'data' => $usuarioVisible,
-            ],201);
-        
+            ], 201);
+
         } catch (\Exception $e) {
-            return response()->json ([
+            return response()->json([
                 'error' => 'El usuario no se pudo registrar',
                 'data' => $e
-            ],400);
-            
-        } 
+            ], 400);
 
-         
+        }
+
+
     }
 
     /**
@@ -75,28 +79,28 @@ class UsuarioController extends Controller
      */
     public function show($id)
     {
-         try {
+        try {
             $usuario = $this->servicioUsuario::obtenerUsuario($id);
 
-            if(!$usuario) {
+            if (!$usuario) {
 
                 return response()->json([
-                'Error' => 'El usuario no se pudo encontrar',
-                
-            ],404);
+                    'Error' => 'El usuario no se pudo encontrar',
+
+                ], 404);
 
             }
 
             return response()->json([
                 'success' => 'El usuario se encontró correctamente',
-                'data' =>$usuario
-            ],200);
+                'data' => $usuario
+            ], 200);
 
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'No se pudo encontrar el usuario',
-                'data' =>$e
-            ],400);
+                'data' => $e
+            ], 400);
         }
     }
 
@@ -105,58 +109,77 @@ class UsuarioController extends Controller
      */
     public function update(UsuarioRequest $camposActualizados, $id_usuario)
     {
-         try {
-            $usuario = $this->servicioUsuario::actualizarUsuario($camposActualizados->validated(),$id_usuario);
+        try {
 
-            if(!$usuario) {
+            $usuarioDB = $this->servicioUsuario::obtenerUsuario($id_usuario);
 
+            if (!$usuarioDB) {
                 return response()->json([
-                'Error' => 'El usuario no se pudo encontrar',
-                
-            ],404);
-
+                    'Error' => 'El usuario no se pudo encontrar',
+                ], 404);
             }
+
+            $this->authorize('update', $usuarioDB);
+
+            $usuario = $this->servicioUsuario::actualizarUsuario(
+                $camposActualizados->validated(),
+                $id_usuario
+            );
 
             return response()->json([
                 'success' => 'El usuario se actualizó correctamente',
-                'data' =>$usuario
-            ],200);
+                'data' => $usuario
+            ], 200);
+
+        } catch (AuthorizationException $e) {
+
+            return response()->json([
+                'error' => 'No tienes permisos para realizar esta acción',
+            ], 403);
 
         } catch (\Exception $e) {
+
             return response()->json([
                 'error' => 'No se pudo actualizar el usuario',
-                'data' =>$e
-            ],400);
+                'data' => $e->getMessage(),
+            ], 400);
         }
+
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
     public function destroy($id_usuario)
-    
     {
-         try {
-            $usuario = $this->servicioUsuario::eliminarUsuario($id_usuario);
+        try {
 
-            if(!$usuario) {
-
+        
+            $usuarioDB = $this->servicioUsuario::obtenerUsuario($id_usuario);
+            
+            if (!$usuarioDB) {
                 return response()->json([
-                'Error' => 'El usuario no se pudo encontrar',
-                
-            ],404);
-
+                    'Error' => 'El usuario no se pudo encontrar',
+                ], 404);
             }
+
+            // 2. Autorizar con el Policy
+            $this->authorize('delete', $usuarioDB);
+
+            // 3. Ejecutar tu servicio (manteniendo tu estructura)
+            $usuario = $this->servicioUsuario::eliminarUsuario($id_usuario);
 
             return response()->json([
                 'success' => 'El usuario se eliminó correctamente',
-            ],200);
+            ], 200);
 
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'No se pudo eliminar el usuario',
-                'data' =>$e
-            ],400);
+                'data' => $e
+            ], 400);
         }
     }
+
 }
