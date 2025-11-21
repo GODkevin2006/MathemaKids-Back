@@ -10,6 +10,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContenidoProyectoController;
 use App\Http\Controllers\SpotifyController;
 
+
+Route::apiResource('usuario', UsuarioController::class);
 Route::post('/register', [UsuarioController::class, 'store']);
 // -------------------------------
 //  RUTAS PUBLICAS (sin login)
@@ -34,6 +36,7 @@ Route::get('categoria/{id}', [CategoriaController::class, 'show']);
 //  ADMIN (rol 1)
 // -------------------------------
 Route::middleware(['jwt.cookie', 'rol:1'])->group(function () {
+    
     
     Route::apiResource('rol', RolController::class);
     Route::apiResource('publicacion', PublicacionController::class);
@@ -65,9 +68,9 @@ Route::middleware(['jwt.cookie', 'rol:2'])->group(function () {
 // -------------------------------
 Route::middleware(['jwt.cookie', 'rol:3'])->group(function () {
     
-    Route::apiResource('usuario', UsuarioController::class);
+    
     // Perfil propio
-    Route::get('usuario/o{id}', [UsuarioController::class, 'show']);
+    Route::get('usuario/{id}', [UsuarioController::class, 'show']);
     Route::put('usuario/{id}', [UsuarioController::class, 'update']);
     Route::delete('usuario/{id}', [UsuarioController::class, 'destroy']);
 

@@ -123,7 +123,7 @@ class UsuarioController extends Controller
 
             $usuario = $this->servicioUsuario::actualizarUsuario(
                 $camposActualizados->validated(),
-                $id_usuario
+                        $id_usuario
             );
 
             return response()->json([
