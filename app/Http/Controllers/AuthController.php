@@ -34,4 +34,17 @@ class AuthController extends Controller
     ])->cookie('token', $token, 60 * 24, null, null, false, true);
 }
 
+public function me(Request $request){
+        return response()->json([
+            'success' => true,
+            'user' => $request->user()
+        ],200);
+    }   
+
+public function logout(){
+    return response()->json([
+        'success' => true,
+        'message' => 'Sesion cerrada'
+    ], 200)->cookie('token', '', -1);
+}
 }
