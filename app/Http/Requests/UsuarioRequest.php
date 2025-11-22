@@ -26,7 +26,7 @@ class UsuarioRequest extends FormRequest
             'nombres' => ($isUpdate ? 'sometimes' : 'required').'|string|max:30|min:10',
             'apellidos' => ($isUpdate ? 'sometimes' : 'required').'|string|max:30|min:10',
             'correo' => ($isUpdate ? 'sometimes' : 'required'). '|email|unique:usuario,correo',
-            'contraseña' => ($isUpdate ? 'sometimes' : 'required'). '|min:8|max:20|confirmed',
+            'contraseña' => ($isUpdate ? 'sometimes' : 'required'). '|min:8|max:20|confirmedzzz|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._-])[A-Za-z\d@$!%*?&._-]{8,}$/',
             'estado'  => ($isUpdate ? 'sometimes' : 'required') . '|in:activo,inactivo',
             'id_rol' => ($isUpdate ? 'sometimes' : 'required').'|integer|exists:rol,id_rol'
             
@@ -59,6 +59,7 @@ class UsuarioRequest extends FormRequest
         'contraseña.min' => 'La contraseña debe tener al menos 8 caracteres.',
         'contraseña.max' => 'La contraseña no puede tener más de 20 caracteres.',
         'contraseña.confirmed' => 'La confirmación de la contraseña no coincide.',
+        'contraseña.regex' => 'La contraseña debe incluir al menos una mayúscula, una minúscula, un número y un carácter especial',
 
         'estado.required' => 'El campo estado es obligatorio.',
         'estado.sometimes' => 'El campo estado es opcional para actualización.',

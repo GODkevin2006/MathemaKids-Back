@@ -23,7 +23,7 @@ $user = JWTAuch::user();
 
 return response()->json([
     'message' => 'Login successful',
-    'role' => $user->rol,
+    'id_rol' => $user->id_rol,
     'user' => $user
 ])
 ->cookie('token',60*24, null, null, false, true);
