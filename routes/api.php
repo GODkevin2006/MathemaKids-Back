@@ -46,8 +46,17 @@ Route::get('categoria/{id}', [CategoriaController::class, 'show']);
 // -------------------------------
 Route::middleware(['jwt.cookie', 'rol:1'])->group(function () {
     
+    // Rutas específicas de usuario para admin (sin conflicto con rol 3)
+    Route::get('usuario', [UsuarioController::class, 'index']);
+    Route::post('usuario', [UsuarioController::class, 'store']);
+    // Ver, editar y eliminar cualquier usuario
+    Route::get('usuario/{id}', [UsuarioController::class, 'show']);
+    Route::put('usuario/{id}', [UsuarioController::class, 'update']);
+    Route::delete('usuario/{id}', [UsuarioController::class, 'destroy']);
+
     
     Route::apiResource('rol', RolController::class);
+    Route::apiResource('usuario', UsuarioController::class);
     Route::apiResource('publicacion', PublicacionController::class);
     Route::apiResource('proyecto', ProyectoController::class);
     Route::apiResource('categoria', CategoriaController::class);
@@ -76,7 +85,6 @@ Route::middleware(['jwt.cookie', 'rol:2'])->group(function () {
 //  USUARIO NORMAL (rol 3)
 // -------------------------------
 Route::middleware(['jwt.cookie', 'rol:3'])->group(function () {
-    
     
     // Perfil propio
     Route::get('usuario/{id}', [UsuarioController::class, 'show']);
