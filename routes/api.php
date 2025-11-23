@@ -17,6 +17,16 @@ use App\Http\Controllers\SpotifyController;
 Route::post('login', [AuthController::class, 'login']);
 Route::post('/register', [UsuarioController::class, 'store']);
 
+//RUTA  /me (ewquiere token pero no rol especifico)
+Route::middleware(['jwt.cookie'])->group(function () {
+
+    //Datos del usuario autenticado
+    Route::get('/me', [AuthController::class, 'me']);
+
+    //Cerrar sesion
+    Route::post('/logout', [AuthController::class, 'logout']);
+});
+
 Route::get('publicacion', [PublicacionController::class, 'index']);
 Route::get('publicacion/{id}', [PublicacionController::class, 'show']);
 
