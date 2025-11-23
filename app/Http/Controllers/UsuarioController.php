@@ -174,10 +174,16 @@ class UsuarioController extends Controller
                 'success' => 'El usuario se eliminó correctamente',
             ], 200);
 
+        } catch (AuthorizationException $e) {
+
+            return response()->json([
+                'error' => 'No tienes permisos para realizar esta acción',
+            ], 403);
+
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'No se pudo eliminar el usuario',
-                'data' => $e
+                'data' => $e->getMessage(),
             ], 400);
         }
     }

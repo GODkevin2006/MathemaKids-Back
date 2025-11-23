@@ -11,12 +11,11 @@ use App\Http\Controllers\ContenidoProyectoController;
 use App\Http\Controllers\SpotifyController;
 
 
-Route::apiResource('usuario', UsuarioController::class);
-Route::post('/register', [UsuarioController::class, 'store']);
 // -------------------------------
 //  RUTAS PUBLICAS (sin login)
 // -------------------------------
 Route::post('login', [AuthController::class, 'login']);
+Route::post('/register', [UsuarioController::class, 'store']);
 
 Route::get('publicacion', [PublicacionController::class, 'index']);
 Route::get('publicacion/{id}', [PublicacionController::class, 'show']);
