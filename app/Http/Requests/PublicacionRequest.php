@@ -49,7 +49,7 @@ class PublicacionRequest extends FormRequest
 
         // tipo_publicacion
         'tipo_publicacion.required' => 'El tipo de publicación es obligatorio.',
-        'tipo_publicacion.in'       => 'El tipo de publicación debe ser "block" o "noticias".',
+        'tipo_publicacion.in'       => 'El tipo de publicación debe ser "blog" o "noticias".',
 
         // titulo
         'titulo.required'           => 'El título es obligatorio.',
