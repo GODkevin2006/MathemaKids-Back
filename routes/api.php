@@ -9,6 +9,7 @@ use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ContenidoProyectoController;
 use App\Http\Controllers\SpotifyController;
+use App\Http\Controllers\ResetPasswordApiController;
 
 
 Route::apiResource('usuario', UsuarioController::class);
@@ -117,3 +118,9 @@ Route::prefix('spotify')->group(function () {
 
     Route::get('/search/tracks', [SpotifyController::class, 'searchTracks']);
 });
+
+// -------------------------------
+//  RUTAS PARA RECUPERAR CONTRASEÑA
+// -------------------------------
+Route::post('password/forgot', [ResetPasswordApiController::class, 'sendResetLink']);
+Route::post('password/reset', [ResetPasswordApiController::class, 'resetPassword']);
