@@ -3,29 +3,48 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Requests\AuthRequest;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Tymon\JWTAuth\Exceptions\JWTException;
 
 class AuthController extends Controller
 {
 
-public function login(LoginRequest $login)
+    public function login(AuthRequest $login)
 {
-    $credentials =$login->only('correo', 'contraseña');
+    $credentials = [
+        'correo'   => $login->input('correo'),
+        'password' => $login->input('contraseña'),
+    ];
 
     try {
-        if (!$token = JWTAuth::attempt($credentials)){
-            return response()->json(['error' => 'Invalid credentials'], 401);
+        if (!$token = \Tymon\JWTAuth\Facades\JWTAuth::attempt($credentials)) {
+            return response()->json(['error' => 'credenciales incorrectas'], 401);
         }
-}catch(JWTException $e){
-    return response()->json(['error' => 'Could not create token'], 500);
+    } catch (JWTException $e) {
+        return response()->json(['error' => 'Could not create token'], 500);
+    }
+
+    $user = JWTAuth::user();
+
+    return response()->json([
+        'message' => 'Login successful',
+        'user'    => $user,
+        'token'   => $token
+    ])->cookie('token', $token, 60 * 24, null, null, false, true);
 }
 
-$user = JWTAuch::user();
+public function me(Request $request){
+        return response()->json([
+            'success' => true,
+            'user' => $request->user()
+        ],200);
+    }   
 
-return response()->json([
-    'message' => 'Login successful',
-    'id_rol' => $user->id_rol,
-    'user' => $user
-])
-->cookie('token',60*24, null, null, false, true);
+public function logout(){
+    return response()->json([
+        'success' => true,
+        'message' => 'Sesion cerrada'
+    ], 200)->cookie('token', '', -1);
 }
 }
