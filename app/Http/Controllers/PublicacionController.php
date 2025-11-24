@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\PublicacionService;
 use App\Http\Requests\PublicacionRequest;
+use Illuminate\Auth\Access\AuthorizationException;
 
 
 class PublicacionController extends Controller
@@ -89,23 +90,33 @@ class PublicacionController extends Controller
    public function update(PublicacionRequest $camposActualizados, $id_publicacion)
     {
         try {
-            $publicacion = $this->servicioPublicacion::actualizarPublicacion($camposActualizados->validated(), $id_publicacion);
+            $publicacionDB = $this->servicioPublicacion::obtenerPublicacion($id_publicacion);
 
-            if(!$publicacion) {
+            if(!$publicacionDB) {
                 return response()->json([
                     'Error'=> 'La publicacion no se pudo encontrar'
                 ],404);
             }
+
+            $this->authorize('update', $publicacionDB);
+
+            $publicacion = $this->servicioPublicacion::actualizarPublicacion($camposActualizados->validated(), $id_publicacion);
 
             return response()->json([
                 'Success'=>'La publicacion se actualizo correctamente.',
                 'Data'=>$publicacion
             ],200);
 
+        } catch (AuthorizationException $e) {
+
+            return response()->json([
+                'error' => 'No tienes permisos para realizar esta acción',
+            ], 403);
+
         } catch (\Exception $e) {
             return response()->json([
                 'Error'=>'No se pudo actualizar la publicacion.',
-                'Data'=>$e
+                'Data'=>$e->getMessage(),
             ], 400);
         }
     }
@@ -118,22 +129,32 @@ class PublicacionController extends Controller
     {
     
         try {
-            $publicacion = $this->servicioPublicacion::eliminarPublicacion($id_publicacion);
+            $publicacionDB = $this->servicioPublicacion::obtenerPublicacion($id_publicacion);
 
-            if(!$publicacion) {
+            if(!$publicacionDB) {
                 return response()->json([
                     'Error'=>'La publicacion no se encontro'
                 ],404);            
             }
 
+            $this->authorize('delete', $publicacionDB);
+
+            $publicacion = $this->servicioPublicacion::eliminarPublicacion($id_publicacion);
+
             return response()->json([
                 'Success'=>'La publicacion se elimino correctamente.',
             ],200);
 
+        } catch (AuthorizationException $e) {
+
+            return response()->json([
+                'error' => 'No tienes permisos para realizar esta acción',
+            ], 403);
+
         } catch (\Exception $e) {
             return response()->json([
                 'Error'=>'No se pudo eliminar la publicacion.',
-                'Data'=>$e
+                'Data'=>$e->getMessage(),
             ], 400);
         }
     }
