@@ -9,10 +9,6 @@ class RolMiddleware
 {
     public function handle(Request $request, Closure $next, $rol)
     {
-<<<<<<< HEAD
-        if(!$request->user() || $request->user()->id_rol !== $rol){
-            return response()->json(['error' => 'Unauthorized'], 403);
-=======
         // Verificar si hay usuario autenticado por JWT
         $user = $request->user();
 
@@ -30,7 +26,6 @@ class RolMiddleware
         }
 
         return $next($request);
->>>>>>> 62f2396224575b4c65d7cc7ec62661ac443ae08c
     }
 
 }
