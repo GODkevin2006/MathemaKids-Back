@@ -11,7 +11,7 @@ class PublicacionService
     }
 
     public static function listarPublicaciones(){
-        return publicacion::get();
+        return publicacion::where('tipo_publicacion', 'blog')->get();
     }
 
     public static function obtenerPublicacion($id_publicacion){

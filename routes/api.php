@@ -56,7 +56,10 @@ Route::middleware(['jwt.cookie', 'rol:1'])->group(function () {
 
     // Admin puede gestionar todo el contenido
     Route::apiResource('rol', RolController::class)->except(['create', 'edit']);
-    Route::apiResource('publicacion', PublicacionController::class)->except(['create', 'edit']);
+    // ADMIN: crear, editar y borrar publicaciones
+        Route::post('publicacion', [PublicacionController::class, 'store']);
+        Route::put('publicacion/{id}', [PublicacionController::class, 'update']);
+        Route::delete('publicacion/{id}', [PublicacionController::class, 'destroy']);
     Route::apiResource('proyecto', ProyectoController::class)->except(['create', 'edit']);
     Route::apiResource('categoria', CategoriaController::class)->except(['create', 'edit']);
     Route::apiResource('contenido_proyecto', ContenidoProyectoController::class)->except(['create', 'edit']);
@@ -68,7 +71,10 @@ Route::middleware(['jwt.cookie', 'rol:1'])->group(function () {
 //  MODERADOR (rol 2)
 // -------------------------------
 Route::middleware(['jwt.cookie', 'rol:2'])->group(function () {
-    Route::apiResource('publicacion', PublicacionController::class)->except(['create', 'edit']);
+    // ADMIN: crear, editar y borrar publicaciones
+        Route::post('publicacion', [PublicacionController::class, 'store']);
+        Route::put('publicacion/{id}', [PublicacionController::class, 'update']);
+        Route::delete('publicacion/{id}', [PublicacionController::class, 'destroy']);
     Route::apiResource('proyecto', ProyectoController::class)->except(['create', 'edit']);
     Route::apiResource('categoria', CategoriaController::class)->except(['create', 'edit']);
     Route::apiResource('contenido_proyecto', ContenidoProyectoController::class)->except(['create', 'edit']);
@@ -87,7 +93,11 @@ Route::middleware(['jwt.cookie', 'rol:3'])->group(function () {
     Route::delete('usuario/{id}', [UsuarioController::class, 'destroy']);
 
     // Solo puede crear y manejar sus publicaciones
-    Route::apiResource('publicacion', PublicacionController::class)->except(['create', 'edit']);
+    // ADMIN: crear, editar y borrar publicaciones
+        Route::post('publicacion', [PublicacionController::class, 'store']);
+        Route::put('publicacion/{id}', [PublicacionController::class, 'update']);
+        Route::delete('publicacion/{id}', [PublicacionController::class, 'destroy']);
+
 
     // Solo ver proyectos
     Route::get('proyecto', [ProyectoController::class, 'index']);
