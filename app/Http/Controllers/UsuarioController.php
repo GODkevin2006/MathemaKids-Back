@@ -121,11 +121,17 @@ class UsuarioController extends Controller
 
             $this->authorize('update', $usuarioDB);
 
-            $usuario = $this->servicioUsuario::actualizarUsuario(
-                $camposActualizados->validated(),
-                        $id_usuario
-            );
+            $data = $camposActualizados->validated();
 
+       
+            if (isset($data['contraseña']) && !empty($data['contraseña'])) {
+            $data['contraseña'] = Hash::make($data['contraseña']);
+        }
+
+        $usuario = $this->servicioUsuario::actualizarUsuario(
+            $data,
+            $id_usuario
+        );
             return response()->json([
                 'success' => 'El usuario se actualizó correctamente',
                 'data' => $usuario
